@@ -1,0 +1,124 @@
+mutant b: print.bend
+136c136
+<       "pub "
+---
+>       "pub  "
+FAIL parse/01_struct.rs: print(parse(f)) differs from f
+5,7c5,7
+< pub struct Point {
+<     pub x: i64,
+<     pub y: i64,
+---
+> pub  struct Point {
+>     pub  x: i64,
+>     pub  y: i64,
+10c10
+< pub struct Unit;
+FAIL parse/02_enum.rs: print(parse(f)) differs from f
+3c3
+< pub enum Shape {
+---
+> pub  enum Shape {
+14c14
+< pub enum Event {
+---
+> pub  enum Event {
+FAIL parse/03_fn.rs: print(parse(f)) differs from f
+2c2
+< pub fn add(a: i64, b: i64) -> i64 {
+---
+> pub  fn add(a: i64, b: i64) -> i64 {
+12c12
+< pub fn describe_the_configuration_of_a_long_named_function(
+---
+> pub  fn describe_the_configuration_of_a_long_named_function(
+FAIL parse/04_impl.rs: print(parse(f)) differs from f
+1c1
+< pub struct Counter {
+---
+> pub  struct Counter {
+7c7
+<     pub fn new(step: u64) -> Self {
+---
+>     pub  fn new(step: u64) -> Self {
+11c11
+<     pub fn advanced(&self) -> Counter {
+FAIL parse/05_trait.rs: print(parse(f)) differs from f
+1c1
+< pub trait Named {
+---
+> pub  trait Named {
+9c9
+< pub trait Shape: Named + Clone {
+---
+> pub  trait Shape: Named + Clone {
+PASS parse/06_match.rs
+PASS parse/07_if.rs
+PASS parse/08_chain.rs
+FAIL parse/09_use.rs: print(parse(f)) differs from f
+11c11
+<     pub fn id(x: i64) -> i64 {
+---
+>     pub  fn id(x: i64) -> i64 {
+16c16
+< pub mod empty {}
+---
+> pub  mod empty {}
+FAIL parse/10_types.rs: print(parse(f)) differs from f
+1c1
+< pub const LIMIT: usize = 64;
+---
+> pub  const LIMIT: usize = 64;
+5c5
+< pub type Table = Vec<(String, u64)>;
+---
+> pub  type Table = Vec<(String, u64)>;
+9c9
+< pub fn apply(f: impl Fn(i64) -> i64, xs: &[i64]) -> Vec<i64> {
+PASS parse/11_vertical.rs
+FAIL parse/12_result.rs: print(parse(f)) differs from f
+2c2
+< pub enum Error {
+---
+> pub  enum Error {
+7c7
+< pub fn parse_all(lines: Vec<String>) -> Result<Vec<i64>, Error> {
+---
+> pub  fn parse_all(lines: Vec<String>) -> Result<Vec<i64>, Error> {
+PASS parse/13_turbofish.rs
+FAIL parse/14_gaps.rs: print(parse(f)) differs from f
+2c2
+< pub struct Settings {
+---
+> pub  struct Settings {
+4c4
+<     pub name: String,
+---
+>     pub  name: String,
+8c8
+<     pub retries: u32,
+FAIL refuse/01_loop.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/02_while.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/03_for.rs: no fixture file for this EXPECTED.tsv row
+PASS refuse/04_ref_mut.rs
+PASS refuse/05_mut_binding.rs
+PASS refuse/06_unsafe.rs
+PASS refuse/07_unwrap.rs
+PASS refuse/08_expect.rs
+PASS refuse/09_panic.rs
+PASS refuse/10_assert.rs
+PASS refuse/11_assert_eq.rs
+PASS refuse/12_as.rs
+PASS refuse/13_index.rs
+PASS refuse/14_scan.rs
+PASS refuse/15_dyn.rs
+PASS refuse/16_lifetime.rs
+PASS refuse/17_async.rs
+PASS refuse/18_await.rs
+PASS refuse/19_macro.rs
+PASS refuse/20_comment.rs
+FAIL refused-count: 17 fixtures, floor 20
+FAIL expected-rows: 20 rows for 17 refused fixtures
+pass=22 fail=14
+RUST-PARSE-FAIL
+gate status 1

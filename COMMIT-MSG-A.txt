@@ -1,0 +1,30 @@
+Add the Rust frontend for the dual transpiler: lexer, fragment pass, parser and printer
+
+This is unit A of the mech-rust M0 plan (RUST-PARSE). The frontend is Bend 2
+code. It reads rustfmt-clean Rust in the house-convention subset and prints it
+again byte for byte.
+
+- bend2/rust/token.bend, lexer.bend: tokens with line and column, a blank-line
+  flag, doc comments, lifetimes, raw identifiers and integer suffixes.
+- bend2/rust/fragment.bend: a token pass that reports each construct outside
+  the subset as `REFUSED <line>:<col> <construct>`. There are 20 refused
+  constructs; the table is in bend2/rust/FRONTEND.md.
+- bend2/rust/ast.bend, parser.bend: one recursive `Node` type for items and
+  expressions; `Parser.file` and `Parser.from_tokens`.
+- bend2/rust/print.bend: the printer. Law: print(parse(f)) == f for each
+  accepted fixture.
+- bend2/tests/rust_frontend.bend: the driver, with the modes lex, parse, print
+  and check. It writes its report with IO.write, because IO.print adds a
+  newline and the gate compares exactly.
+- test/rust/parse: 14 accepted fixtures. test/rust/refuse: 20 refused fixtures
+  and EXPECTED.tsv (name, line:col, construct).
+- dev/rust-parse-gate.sh: the gate. It builds the driver one time as
+  JavaScript, runs `check` on each fixture with node, and compares the output
+  exactly. It prints RUST-PARSE-OK when all 34 fixtures pass.
+- bend2/rust/FRONTEND.md: pipeline, round-trip law, refusal table, gate and
+  known limits.
+
+Mutation controls, each in a temporary copy, each makes the gate fail:
+- fragment.bend, the `dyn` entry changed to a plain keyword: refuse/15_dyn.rs
+  fails.
+- print.bend, `"pub "` changed to `"pub  "`: 9 accepted fixtures fail.

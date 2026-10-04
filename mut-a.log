@@ -1,0 +1,46 @@
+mutant a: fragment.bend
+55c55
+<   Entry{"unsafe", CUnsafe{}} <> Entry{"as", CAs{}} <> Entry{"dyn", CDyn{}} <> Entry{"async", CAsync{}} <>
+---
+>   Entry{"unsafe", CUnsafe{}} <> Entry{"as", CAs{}} <> Entry{"dyn", CKw{}} <> Entry{"async", CAsync{}} <>
+PASS parse/01_struct.rs
+PASS parse/02_enum.rs
+PASS parse/03_fn.rs
+PASS parse/04_impl.rs
+PASS parse/05_trait.rs
+PASS parse/06_match.rs
+PASS parse/07_if.rs
+PASS parse/08_chain.rs
+PASS parse/09_use.rs
+PASS parse/10_types.rs
+PASS parse/11_vertical.rs
+PASS parse/12_result.rs
+PASS parse/13_turbofish.rs
+PASS parse/14_gaps.rs
+FAIL refuse/01_loop.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/02_while.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/03_for.rs: no fixture file for this EXPECTED.tsv row
+PASS refuse/04_ref_mut.rs
+PASS refuse/05_mut_binding.rs
+PASS refuse/06_unsafe.rs
+PASS refuse/07_unwrap.rs
+PASS refuse/08_expect.rs
+PASS refuse/09_panic.rs
+PASS refuse/10_assert.rs
+PASS refuse/11_assert_eq.rs
+PASS refuse/12_as.rs
+PASS refuse/13_index.rs
+PASS refuse/14_scan.rs
+FAIL refuse/15_dyn.rs: want 'REFUSED 1:20 dyn Trait', got 'pub fn show(x: Box<dyn, Display>) -> u32 {
+    0
+}'
+PASS refuse/16_lifetime.rs
+PASS refuse/17_async.rs
+PASS refuse/18_await.rs
+PASS refuse/19_macro.rs
+PASS refuse/20_comment.rs
+FAIL refused-count: 17 fixtures, floor 20
+FAIL expected-rows: 20 rows for 17 refused fixtures
+pass=30 fail=6
+RUST-PARSE-FAIL
+gate status 1

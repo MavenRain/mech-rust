@@ -1,0 +1,52 @@
+Add the Rust emitter for the dual transpiler: typed erasure, crate writer and DIFF-EXEC gate
+
+This is unit B of the mech-rust M0 plan (DIFF-EXEC). The new verb
+`mech rust-out FILE.mech... OUT_DIR` checks the input files with the kernel,
+erases the checked terms to a small Rust IR, and writes a Cargo crate with no
+dependency. A declaration with no Rust form goes verbatim to
+mech-carrier.mech.
+
+- bend2/rust/rir.bend: the Rust IR. Each `&`, `.clone()` and `Box::new` is
+  an explicit node.
+- bend2/rust/erase_typed.bend: the class of each declaration (fn, data, bool,
+  prop, type, absurd, refused) and the typed erasure of families, signatures
+  and bodies. A type binder with quantity 0 becomes a generic, a Prop binder
+  is dropped, and a binder with quantity many is `&T` outside the Copy set.
+- bend2/rust/emit.bend: IR to text through the syntax tree and the printer of
+  the frontend.
+- bend2/rust/print.bend: the printer now prints a match with no arm
+  (`match e {}`). test/rust/parse/15_empty_match.rs is its fixture.
+- bend2/cli/rust_out.bend, bend2/cli/mech.bend: the `rust-out` verb. It
+  refuses an output directory that exists, and it refuses a name collision
+  of items or of modules. It writes Cargo.toml, src/lib.rs, one module for
+  each input file, src/nat.rs if a module uses the kernel Nat, and the
+  carrier.
+- bend2/tests/rust_emit.bend, rust_emit_oracle.bend: the driver (modes
+  sample, classify, emit, crate, probes, values and bin) and the oracle
+  (kernel values in the Rust `{:?}` form, probe generation, and the text of
+  src/bin/diff_exec.rs).
+- test/rust/emit: the golden crate of prelude/init.mech +
+  prelude/mechanism/second-price.mech (22 functions, 7 families, 26 carried
+  declarations), the golden of the 218 generated probes, 20 probes that are
+  written by hand, the golden of the 238 kernel values, and a negative
+  fixture.
+- dev/rust-out-diff-exec.sh: the gate. It builds the driver one time as
+  JavaScript, compares 8 outputs with the goldens, builds the probe crate
+  below $TMPDIR with cargo, and compares each value that the emitted Rust
+  prints with the kernel value. It prints DIFF-EXEC-OK when all 238 values
+  are equal.
+- bend2/rust/EMIT.md: command, classes, erasure rules, names, carrier,
+  refusal reasons, driver, gate and known limits.
+
+Mutation control, in a copy of the probe crate: the gate exchanges the
+patterns of the two arms of each match on AuctionChoice. 88 values differ,
+so the copy is red.
+
+Checks:
+- dev/rust-out-diff-exec.sh: 8 golden PASS, 238 value PASS, DIFF-EXEC-OK.
+- dev/rust-parse-gate.sh with the printer change: RUST-PARSE-OK, 35 fixtures.
+- The carrier has the 26 names of the prop, type and absurd classes,
+  verbatim and in source order, and no runtime name.
+
+Not run: bend2/main.bend is not built, so the dispatch case of
+`mech rust-out` is not run. The driver calls the same `run`.

@@ -1,0 +1,59 @@
+== diag (old driver, IO.print)
+build status 0 secs 1191
+-rwxr-xr-x@ 1 oobi  wheel  1979552 Oct  3 04:01 /private/tmp/claude-501/-Users-oobi-Documents-claude7/67afaf39-d4ea-457e-9bee-cd52718da9ae/scratchpad/rust_frontend
+run status 0 secs 1
+     354 /Users/oobi/Documents/mechanism-lang-rust-m0/test/rust/parse/01_struct.rs
+     355 /private/tmp/claude-501/-Users-oobi-Documents-claude7/67afaf39-d4ea-457e-9bee-cd52718da9ae/scratchpad/out
+       0 /private/tmp/claude-501/-Users-oobi-Documents-claude7/67afaf39-d4ea-457e-9bee-cd52718da9ae/scratchpad/err
+     709 total
+/private/tmp/claude-501/-Users-oobi-Documents-claude7/67afaf39-d4ea-457e-9bee-cd52718da9ae/scratchpad/diag.sh:print:17: bad option: - 
+== gate
+FAIL refuse/01_loop.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/02_while.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/03_for.rs: no fixture file for this EXPECTED.tsv row
+FAIL refused-count: 17 fixtures, floor 20
+FAIL expected-rows: 20 rows for 17 refused fixtures
+pass=31 fail=5
+RUST-PARSE-FAIL
+gate status 1 secs 45
+== mutant a
+mutant a: fragment.bend
+55c55
+<   Entry{"unsafe", CUnsafe{}} <> Entry{"as", CAs{}} <> Entry{"dyn", CDyn{}} <> Entry{"async", CAsync{}} <>
+---
+FAIL refuse/01_loop.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/02_while.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/03_for.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/15_dyn.rs: want 'REFUSED 1:20 dyn Trait', got 'pub fn show(x: Box<dyn, Display>) -> u32 {
+FAIL refused-count: 17 fixtures, floor 20
+FAIL expected-rows: 20 rows for 17 refused fixtures
+pass=30 fail=6
+RUST-PARSE-FAIL
+gate status 1
+== mutant b
+mutant b: print.bend
+136c136
+<       "pub "
+---
+FAIL parse/01_struct.rs: print(parse(f)) differs from f
+FAIL parse/02_enum.rs: print(parse(f)) differs from f
+FAIL parse/03_fn.rs: print(parse(f)) differs from f
+FAIL parse/04_impl.rs: print(parse(f)) differs from f
+FAIL parse/05_trait.rs: print(parse(f)) differs from f
+FAIL parse/09_use.rs: print(parse(f)) differs from f
+FAIL parse/10_types.rs: print(parse(f)) differs from f
+FAIL parse/12_result.rs: print(parse(f)) differs from f
+FAIL parse/14_gaps.rs: print(parse(f)) differs from f
+FAIL refuse/01_loop.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/02_while.rs: no fixture file for this EXPECTED.tsv row
+FAIL refuse/03_for.rs: no fixture file for this EXPECTED.tsv row
+FAIL refused-count: 17 fixtures, floor 20
+FAIL expected-rows: 20 rows for 17 refused fixtures
+pass=22 fail=14
+RUST-PARSE-FAIL
+gate status 1
+== loop probes
+01_loop want 'REFUSED 2:5 loop' got 'REFUSED 2:5 loop'
+02_while want 'REFUSED 2:5 while' got 'REFUSED 2:5 while'
+03_for want 'REFUSED 2:5 for' got 'REFUSED 2:5 for'
+total secs 186
