@@ -142,7 +142,7 @@ Part 1 (read).  syntax.bend:102: "Printing uses explicit parentheses to preserve
 - Parser entries: `Parser.program(source)` -> Result<Error.T, List<Decl>> (bend2/surface/parser.bend:901),
   `Parser.term` (:895).  Error text: `E.message(error)` (bend2/kernel/error.bend:23).
 Part 2 (probe on init.mech and second-price.mech).  RUN 2026-10-04 at acfdfd6.  Files: W/c1-print-probe.bend (modes
-`t1` and `same`) and the runner `zsh /Users/oobi/Documents/mech-rust-m0/c1-crib.sh`.  T1 = print(parse(src)).
+`t1` and `same`) and the runner `zsh /Users/oobi/Documents/mech-rust/c1-crib.sh`.  T1 = print(parse(src)).
       PROBE init.mech decls=26 t1_bytes=5485 fixpoint=YES decl_equal=SAME
       PROBE second-price.mech decls=30 t1_bytes=9294 fixpoint=YES decl_equal=SAME
       C1-CRIB-OK
@@ -221,5 +221,5 @@ Inputs: prelude/init.mech (I) and prelude/mechanism/second-price.mech (S).  A co
 - DIFF-EXEC: `dev/rust-out-diff-exec.sh [emit]`.  Stack rule: `ulimit -s "$(ulimit -Hs)"` (:20) and
   `node --stack-size=16384` (:23).  Build `$bend bend2/tests/rust_emit.bend -o $O/re.js`, O = $TMPDIR/mech-diff-exec
   (:26, :35).  cargo build with `-j 2` (:57), so the sandbox must be off.  Last line: `DIFF-EXEC-OK 238 values`.
-- C0 check: `zsh /Users/oobi/Documents/mech-rust-m0/c0-pos.sh` (one JS build, mode `pos` on each accepted fixture,
+- C0 check: `zsh /Users/oobi/Documents/mech-rust/c0-pos.sh` (one JS build, mode `pos` on each accepted fixture,
   expected lines from `rg -n`;  last line C0-POS-OK).

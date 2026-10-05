@@ -3,7 +3,7 @@
 # and compare each emitted item with the golden crate (W/target-crate).
 set -u
 D=/Users/oobi/Documents/mechanism-lang-rust-m0
-W=/Users/oobi/Documents/mech-rust-m0
+W=/Users/oobi/Documents/mech-rust
 O=${TMPDIR:-/tmp}/mrb1
 mkdir -p $O
 if ! ~/.bend/bin/bend $D/bend2/tests/rust_emit.bend -o $O/re.js > $O/build.log 2>&1; then

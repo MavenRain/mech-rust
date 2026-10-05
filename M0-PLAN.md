@@ -7,7 +7,7 @@ Session claude7 launched units A and B as two parallel opus wf-builder agents on
 ## Shared setup and rules
 
 - Worktree `/Users/oobi/Documents/mechanism-lang-rust-m0`, branch `mech-rust/m0` at ba35171.  Never touch `/Users/oobi/Documents/mechanism-lang` (other sessions' staged work).
-- W = `/Users/oobi/Documents/mech-rust-m0` for logs and `COMMIT-MSG-A.txt` / `COMMIT-MSG-B.txt`.
+- W = `/Users/oobi/Documents/mech-rust` for logs and `COMMIT-MSG-A.txt` / `COMMIT-MSG-B.txt`.
 - NEVER commit or push.  Stage own paths with `git -C <worktree> add`.  Commit messages carry no Co-Authored-By line.
 - Learn first:  the pinned Bend binary (Bend 2.0.27, `MIGRATION-BEND2.md:10`), how `bend2/tests/*.bend` drivers run, how the `mech` CLI is built and how a `.mech` program plus prelude is checked and run.  Read excerpts only.
 - Do not run `dev/gates.sh` (hours).  Run only the focused drivers and gates below.  Stop if one Bend run exceeds 20 minutes.

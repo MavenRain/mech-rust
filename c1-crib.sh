@@ -7,7 +7,7 @@
 # Output: one PROBE line for each input, then C1-CRIB-OK or C1-CRIB-FAIL.
 set -u
 ROOT=/Users/oobi/Documents/mechanism-lang-rust-m0
-W=/Users/oobi/Documents/mech-rust-m0
+W=/Users/oobi/Documents/mech-rust
 BEND=${BEND:-$HOME/.bend/bin/bend}
 WORK=$(mktemp -d ${TMPDIR:-/tmp}/c1-crib.XXXXXX)
 COPY=$ROOT/bend2/tests/zz_c1_print_probe.bend

@@ -7,7 +7,7 @@
 # `nobuild` as the second argument uses the last build.
 set -u
 D=/Users/oobi/Documents/mechanism-lang-rust-m0
-W=/Users/oobi/Documents/mech-rust-m0
+W=/Users/oobi/Documents/mech-rust
 O=${TMPDIR:-/tmp}/mrb3
 mkdir -p $O
 if [[ ${2:-} != nobuild ]]; then

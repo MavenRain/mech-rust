@@ -108,7 +108,7 @@ STEP 4: STAGED bend2/rust, bend2/tests/rust_frontend.bend, test/rust, dev/rust-p
 (it describes the state WITH the 3 loop fixtures: 20 refused, 34 fixtures). NEVER commit or push.
 NEXT (USER): create refuse/01_loop.rs, 02_while.rs, 03_for.rs (contents above; the Write hook denied them again), run
 `zsh dev/rust-parse-gate.sh` (expect pass=34 fail=0, RUST-PARSE-OK), `git add test/rust/refuse`, then
-`git commit -s -F ~/Documents/mech-rust-m0/COMMIT-MSG-A.txt`. After that: unit B (M0-PLAN.md).
+`git commit -s -F ~/Documents/mech-rust/COMMIT-MSG-A.txt`. After that: unit B (M0-PLAN.md).
 10-03 later (same session): USER said "Go ahead and commit and push" and ruled "create them, then commit" (printf through the
 shell). The Bash companion loop guard DENIED the printf writes too (bypass = session env CLAUDE_ALLOW_LOOP_KEYWORDS=1 only).
 Not worked around. NOTHING committed or pushed; 41 files still staged (tree 81e9cec7). USER has commit + push authorization

@@ -8,7 +8,7 @@
 # The third argument is the number of build log lines to print (default 12).
 set -u
 D=/Users/oobi/Documents/mechanism-lang-rust-m0
-W=/Users/oobi/Documents/mech-rust-m0
+W=/Users/oobi/Documents/mech-rust
 O=${TMPDIR:-/tmp}/mrb4
 mode=${1:-all}
 mkdir -p $O

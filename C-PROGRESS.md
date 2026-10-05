@@ -4,7 +4,7 @@ Scope source: design brief sections 4.2, 5, 6, 8.1, 8.3, 9 and 10 (M1).  M0-PLAN
 scope of C below was the choice of the opening session;  the USER RULED it on 10-04 (Rulings, U1).
 Worktree /Users/oobi/Documents/mechanism-lang-rust-m0.  Branch mech-rust/m1 (U2), to be created at 317131b (unit B,
 on mech-rust/m0, pushed per B-PROGRESS.md) as the first step of C0;  the tree was clean at the start of C.
-W = /Users/oobi/Documents/mech-rust-m0.
+W = /Users/oobi/Documents/mech-rust.
 NEVER commit or push.  Stage own paths only.  No Co-Authored-By line.  One sub-unit per fresh session.  Read this
 file's tail first, then the C-LEARN.md sections named in the sub-unit.  Build mode: wf-builder agents (U4, section
 "Build mode").  The rules of M0-PLAN.md "Shared setup and rules" stay in force: never touch

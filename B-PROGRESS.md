@@ -1,7 +1,7 @@
 # mech-rust M0 unit B progress (mech -> Rust emitter, DIFF-EXEC)
 
 Scope source: M0-PLAN.md "Unit B".  Worktree /Users/oobi/Documents/mechanism-lang-rust-m0, branch mech-rust/m0,
-HEAD 653a27e (unit A, pushed), tree clean at the start of B.  W = /Users/oobi/Documents/mech-rust-m0.
+HEAD 653a27e (unit A, pushed), tree clean at the start of B.  W = /Users/oobi/Documents/mech-rust.
 NEVER commit or push.  Stage own paths only.  No Co-Authored-By line.  Hand build in the main loop (opus builders died
 3 of 3 on unit A).  One sub-unit per fresh session.  Read this file's tail first, then the B-LEARN.md sections named
 in the sub-unit.
@@ -235,7 +235,7 @@ Files:
 - CHANGED `bend2/tests/rust_emit.bend`: mode `classify <file.mech> [<file.mech>]` (file 2 is checked in the globals of file 1; the Copy list and the item names carry over).
 - NEW `W/b2-classify.sh`: JS build, classify table, then a diff of each `fn` line against the `symx` signatures of the golden crate. Argument `table` prints the table.
 
-Check: `zsh ~/Documents/mech-rust-m0/b2-classify.sh` gives `B2-CLASSIFY-OK fn signatures: 22 equal`. `b1-sample.sh` still gives `B1-SAMPLE-OK` (the driver dispatch changed).
+Check: `zsh ~/Documents/mech-rust/b2-classify.sh` gives `B2-CLASSIFY-OK fn signatures: 22 equal`. `b1-sample.sh` still gives `B1-SAMPLE-OK` (the driver dispatch changed).
 
 The table equals "Input classification" on each line:
 - init.mech: MechNat `enum { MechZero, MechSucc(Box<MechNat>) }`, MechBool `bool`, MechUnit `struct` + `fn mech_unit`, MechEmpty `copy enum {}`, MechSum `enum<A, B>`, MechDecidable `copy enum { MechIsFalse, MechIsTrue }`; 10 `prop`; 2 `type` (MechPi, MechSigma); 7 `fn`; mechFalseElim `absurd`.
@@ -272,7 +272,7 @@ Files:
 - NEW `test/rust/emit/neg_classify.mech` (one `axiom` with a runtime type; `negTwin` + `neg_twin`, which both give `neg_twin`).
 - CHANGED `W/b2-classify.sh`: after the signature check it classifies init.mech + the fixture and needs the two lines `refused negPostulate: a postulate in the runtime` and `refused: name collision (D7): neg_twin`.
 
-Check: `zsh ~/Documents/mech-rust-m0/b2-classify.sh` gives `B2-CLASSIFY-OK fn signatures: 22 equal` and `B2-NEGATIVE-OK refused line + collision line`. Still NOT tested: `classify` with one file, the phantom generic refusal.
+Check: `zsh ~/Documents/mech-rust/b2-classify.sh` gives `B2-CLASSIFY-OK fn signatures: 22 equal` and `B2-NEGATIVE-OK refused line + collision line`. Still NOT tested: `classify` with one file, the phantom generic refusal.
 
 Why part 2 is not written: the reads for part 2 brought the context to 132k (base about 100k, hard gate 165k). Part 2 is about 450 lines and each build error costs 48 s and one turn. NO part 2 code is in the tree. `erase_typed.bend` is unchanged.
 
@@ -551,7 +551,7 @@ Done:
 - NEW `W/COMMIT-MSG-B.txt` (no Co-Authored-By).
 
 NOT run in this session: the full DIFF-EXEC gate (cargo, sandbox off). Its last run is part 3 (GREEN, 238 values).
-USER command: `git -C ~/Documents/mechanism-lang-rust-m0 commit -s -F ~/Documents/mech-rust-m0/COMMIT-MSG-B.txt`
+USER command: `git -C ~/Documents/mechanism-lang-rust-m0 commit -s -F ~/Documents/mech-rust/COMMIT-MSG-B.txt`
 Open, not blockers (all in EMIT.md "Known limits"): the F29 recursion; `bend2/main.bend` is not built, so the real
 dispatch case is not run; the gate does not run `neg_classify.mech`. NEVER commit or push.
 

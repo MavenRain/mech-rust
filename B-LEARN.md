@@ -190,7 +190,7 @@ Construct table (construct | AST | printer | cite):
 Only "no" in the table: empty match. All other rows are yes, but fragment pass refuses `println!` (macro name rule, FRONTEND.md:54) so a macro call other than vec! is refused before printing.
 
 ## S11 BEND 2 AUTHORING RULES (from unit A)
-Source: /Users/oobi/Documents/mech-rust-m0/A-PROGRESS.md (lines cited).
+Source: /Users/oobi/Documents/mech-rust/A-PROGRESS.md (lines cited).
 Syntax facts:
 - A-PROGRESS:24 `(a, b) = p` in a do block is REJECTED. `Pd{+a, r} <- m` is REJECTED (annotated form is a syntax error). Built-in pair is Type, not Data.
 - A-PROGRESS:25 Use `+a : Parsed<T> <- ...` plus pv/pr accessors (reference style, bend2/surface/parser.bend).
