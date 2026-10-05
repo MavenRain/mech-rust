@@ -1,0 +1,24 @@
+rust frontend: add the RUST-IN gate and close the importer (C6)
+
+Add dev/rust-in-gate.sh, the gate of the Rust importer. It builds the
+importer driver and the emitter driver, then prints one PASS or FAIL line
+for each check and RUST-IN-OK or RUST-IN-FAIL as the last line:
+
+- LIFT: the lift of each module file of the golden crate prints back byte
+  for byte.
+- GOLDEN: the import of the golden crate is equal to
+  test/rust/import/expected, with a byte-equal carrier copy and an exact
+  output file inventory.
+- MECH-CHECK: the imported program passes the kernel check with no axiom.
+- RT-RUST: the emitter gives each file of the golden crate back from the
+  imported program, and the root and source file inventories match.
+- REFUSE: eight refusal crates in test/rust/import/refuse give the exit
+  code and the first error line of EXPECTED.tsv, and leave no output path,
+  including a dangling symlink.
+- RED: a swap of two constructor names must fail RT-RUST, and a recursive
+  call on the full arguments must fail the kernel check.
+
+Add bend2/rust/IMPORT.md, the reference page of the importer, with its
+known limits. No importer source file changes.
+
+Gate: zsh dev/rust-in-gate.sh gives pass=28 fail=0 and RUST-IN-OK.

@@ -479,3 +479,158 @@ all 22 golden function rows, and byte comparisons of golden types, resolve and l
 baseline. Existing CD9, argument and closure refusals are preserved. Driver compilation and shell syntax pass.
 The bare global-function-value probe is outside the current emitter image and remains refused.
 No remaining review blockers. Fixes staged for user review; NEXT remains C4.
+### 2026-10-04 C4 HALTED (claude7, session a5046de4): both wf-builder launches died before any file change
+
+State: HEAD a788f7c (C3 committed), both trees clean, nothing staged. The brief for the builder was inline: the C4
+text, CD6, CD7, CD8, CD10, CD11, CD13, CF4, CF6 to CF11, the C3 note on NCtor order, the C-LEARN sections L1 and L3
+to L7, the log entries with Bend 2 traps, the file list (bend2/rust/lower.bend NEW, modes `lower` and `check` in
+bend2/tests/rust_import.bend, runner W/c4-lower.sh) and five done-when checks (lower with no refusal, MECH-CHECK-OK
+with no postulate row, init.rs and second_price.rs byte-equal through the unit B driver, a RED totality control,
+C1/C2/C3 runners OK).
+- Launch 1, wf-builder fable xhigh: Fable usage limit (429), request req_011CfiLDiVRPRhBED9irsPnY.
+- Launch 2, wf-builder opus xhigh with the tier marker: `[reasoning_extraction]` safeguard, request
+  req_011CfiLGqE4V5SoMFHoppYug.
+Open point for the build: the C4 text says unit B mode `emit`, but C-LEARN L7 gives the modes of
+bend2/tests/rust_emit.bend as crate, probes, values and bin. Use the mode that writes the crate files.
+NEXT: USER ruling (tier rule: no third launch, never sonnet), then C4.
+### 2026-10-04 C4 session 1, hand build (claude7, session a5046de4): C4-LOWER-OK
+
+USER ruling: hand build in this session. Files (STAGED, not committed): bend2/rust/lower.bend NEW (about 330 lines),
+modes `lower` and `check` in bend2/tests/rust_import.bend (the existing modes do not change), runner W/c4-lower.sh.
+Design as planned (CD6, CD7, CD8, CD10, CD11): IEnum and IUnit become `mu` families, IFn becomes `def` (or
+`def rec` when it calls itself), the type is the C3 telescope, the body is `fun` over the generic and parameter
+binders, MechBool goes at the top of init.mech, `nat` makes no file, text comes from Syntax.print. `check` joins
+the files in manifest order and runs Elab.check_text from Global.initial with Budget.unlimited.
+Findings during the build:
+1. The kernel needs a motive on each `case` ("an elimination at a mu shape needs a motive"). The motive is
+   `as self in <family> return <type>`, the form of prelude/init.mech. The walker gives each expression an
+   expected type: the fn body takes the return type, the arms of a match and the branches of an `if` take the
+   expected type of the node, other children take none. The family is the family of the first arm; a match with
+   no arm takes the type of its fn parameter (mechEmptyElim).
+2. The emitter writes an unused local binder `value` as `_value`, so lower strips one leading `_` from a local
+   binder (parameter, closure parameter, pattern field, variable). The C3 telescope does not change.
+3. A zsh `cd` hook fails under `set -u`; the runner uses `cd -q`, as dev/rust-out-diff-exec.sh does.
+4. Bend 2: there is no `Nat.zero()`; count a list with `Nat.show(List.length(String, xs))` (with the
+   `&2` argument first, as in infer.bend).
+Result of W/c4-lower.sh: lower gives init.mech (22 lines) and second-price.mech (21 lines) with no refusal;
+`MECH-CHECK-OK 22 rows axioms=0`; the unit B `crate` mode writes src/init.rs and src/second_price.rs byte-equal
+to the golden crate; lib.rs, nat.rs and Cargo.toml are also equal; mech-carrier.mech differs (expected: it carries
+the lowered text, not the prelude text; RT-MECH is not a unit C gate). RED control: `auction_compare(tie_wins,
+bid, price)` fails with "recursive definition auctionCompare failed the structural termination guard".
+C1-LIFT-OK, C2-RESOLVE-OK, C3-TYPES-OK.
+Limits (not in the golden crate, for C5 or C6): a match or an `if` with no expected type (a call argument, a
+scrutinee, a closure body) gets no motive, so the kernel check fails with no item position (CD13 wants a refusal);
+a Rust binder `_x` that is used lowers to `x` and is not refused; the NCtor and NMatch notes of C3 are not used.
+NEXT: review of C4, then C5 (CLI).
+### 2026-10-04 C5 HALTED (claude7, session 012f2f60): both wf-builder launches died before any file change
+
+State: HEAD c17bfc4 (C4 committed after review: lower.bend 475 lines, dev/rust-lower-gate.py 35 cases), worktree
+clean. The brief for the builder was inline: the C5 text, CD3, CD4, CD7, the rust-out shape and exit codes
+(rust_out.bend usage 64, cannot read 64, output exists 1, refusal 65; temp dir + one rename), the file list
+(bend2/cli/rust_in.bend NEW, case `rust-in` + usage line in bend2/cli/mech.bend, mode `run` in
+bend2/tests/rust_import.bend with an IO main for that mode only, runner W/c5-cli.sh) and eight checks: (a) build
+both drivers, (b) `run` on the golden crate gives init.mech, second-price.mech, MANIFEST and the carrier copy and
+nothing else, (c) RT-RUST of Cargo.toml and src/ through unit B `crate` on the MANIFEST files, (d) an existing out
+dir gives exit 1 and no change, (e) bad args and a missing lib.rs give exit 64, (f) a `let` in init.rs gives exit 65,
+a REFUSED line with its src/init.rs position and no out dir, (g) a crate with no carrier gives no carrier, (h) C4
+runner, rust-lower-gate and rust-infer-gate stay OK.
+- Launch 1, wf-builder fable xhigh: Fable usage limit (429), request req_011CfiVn5ySs3CsTiSiMsdvb.
+- Launch 2, wf-builder opus xhigh with the tier marker: `[reasoning_extraction]` safeguard, request
+  req_011CfiVptQFH8ZUP1cLsns3K.
+NEXT: USER ruling (tier rule: no third launch, never sonnet), then C5.
+### 2026-10-04 C5 session 1, hand build (claude7, session 012f2f60): C5-CLI-OK
+
+USER ruling: hand build in this session. Files (STAGED, not committed): bend2/cli/rust_in.bend NEW (about 130
+lines), case `rust-in` and its usage line in bend2/cli/mech.bend, mode `run` in bend2/tests/rust_import.bend,
+runner W/c5-cli.sh.
+Design:
+- `crate_files(lib, srcs)` is the pure part: resolve, infer, lower, then the kernel check of the files joined in
+  manifest order (CD1). A refusal gives `REFUSED <pos>: ...`; a kernel error gives `MECH-CHECK-FAIL <error>`. Both
+  exit 65 and write no file. The kernel check is not in the C5 text; CD1 puts it in the pipeline.
+- `lower_if` and `lows_of` moved from the driver to rust_in.bend; the driver modes `lower` and `check` call
+  `Ri.lows_of`, so the verb and the driver share one pipeline.
+- The verb reads src/lib.rs, takes the `pub mod` names with `Rs.lib_mods` (nat too, CD7), and reads
+  src/<m>.rs for each. Order and codes as rust-out: an existing out dir first (exit 1, "output already exists"),
+  then a file that cannot be read (exit 64), then the import (exit 65). The files go out through `Files.publish`
+  (temp dir, then one rename). The carrier is read and copied only if <crate>/mech-carrier.mech exists.
+- The driver `main` matches `run` first and calls `Ri.run`; each other mode still writes `run_args`.
+Result of W/c5-cli.sh: the driver, unit B and bend2/mech.bend build; `run` on the golden crate writes MANIFEST,
+init.mech, mech-carrier.mech (byte-equal copy) and second-price.mech, MANIFEST = init.mech then second-price.mech;
+unit B `crate` on the MANIFEST files gives Cargo.toml and all four src/ files byte-equal (RT-RUST; the carrier
+differs, expected, as in C4); an existing out dir gives exit 1 with no change; one argument and a crate with no
+lib.rs give exit 64; a `let` in init.rs gives exit 65 with `REFUSED src/init.rs:13:5: \`let\` statement` and no out
+dir; a crate with no carrier writes none; `mech rust-in` writes the same files as mode `run`; the mech usage lists
+rust-in; C4-LOWER-OK (with C1-C3), RUST-LOWER-OK, RUST-INFER-OK.
+Limits (for C6): dev/BEND2-BASELINE.json pins old hashes of bend2/cli/mech.bend (unit B did not update it either);
+the carrier is copied, not checked against the imported text; no gate script in dev/ yet (C6).
+NEXT: review of C5, then C6 (gate RUST-IN + close).
+### 2026-10-05 C6 session 1, hand build (claude7, session 2819d93d): RUST-IN-OK
+
+State at the start: HEAD a5e9ad1 (C5 committed after review: rust_in.bend 151 lines, dev/rust-in-cli-gate.py 14
+cases), worktree clean. Build mode: both builder agent launches died on `[reasoning_extraction]` before any file
+change (fable xhigh req_011CfimHQy14uDkSiwKWqUKg, opus xhigh with the marker req_011CfimNDnBY6mUcsYrBJWpg). No
+third launch. The hand build follows the USER ruling of C3, C4 and C5 ("Hand build here, now"); the USER did not
+rule again for C6.
+Files (STAGED, not committed): dev/rust-in-gate.sh NEW, bend2/rust/IMPORT.md NEW, test/rust/import/expected/
+{MANIFEST, init.mech, second-price.mech}, test/rust/import/refuse/ (8 crates, 18 .rs files, EXPECTED.tsv);
+W/COMMIT-MSG-C.txt. No importer source file changes.
+Result of `zsh dev/rust-in-gate.sh` (37 s, both drivers built in the run): pass=25 fail=0, RUST-IN-OK. The lines:
+build; LIFT init.rs and second_price.rs; import of the golden crate; GOLDEN MANIFEST, init.mech, second-price.mech
+and the file count; MECH-CHECK-OK 22 rows axioms=0; RT-RUST Cargo.toml, lib.rs, init.rs, nat.rs, second_price.rs;
+8 REFUSE lines and the count; 2 RED lines.
+Refusal fixtures (each exit 65, no out dir; each .rs file except nat.rs is rustfmt-clean):
+- 01_let: `REFUSED src/foo.rs:2:5: \`let\` statement`
+- 02_struct_fields: `REFUSED src/foo.rs:1:1: unit struct \`Pair\` without its constructor fn`
+- 03_method_call: `REFUSED src/foo.rs:2:5: method call \`.max\``
+- 04_name_not_canonical: `REFUSED src/foo.rs:1:1: name \`badName\` that is not canonical: D7 of \`badName\` is
+  \`bad_name\` (CD5)`
+- 05_changed_nat: `REFUSED src/nat.rs:1:1: text other than the fixed \`nat\` module of the emitter (CD7)`
+- 06_mutual_recursion: `MECH-CHECK-FAIL pong`
+- 07_module_cycle: `REFUSED src/alpha.rs:1:1: \`use crate::beta::*;\` in a module cycle (CD3)`
+- 08_ctor_no_expected_type: `REFUSED src/foo.rs:7:1: constructor of a generic family with no expected type (CD9)`
+Accepted controls (scratch only, each exit 0): one fn; one fn with the fixed nat.rs; two modules with one `use`
+edge. So fixtures 01 to 07 fail for their one construct. Fixture 08 has no accepted control: a turbofish on the
+constructor path is refused too.
+RED controls (in the gate): a swap of the names auctionLose and auctionWin in the imported second-price.mech gives
+a different src/second_price.rs; `auction_compare(tie_wins, bid, price)` gives `MECH-CHECK-FAIL recursive
+definition auctionCompare failed the structural termination guard`.
+Open points:
+1. Mutual recursion is not refused in resolve (CD10 wants a refusal). The kernel fails with the name only, no
+   position. The gate pins the present line; a fix in resolve.bend changes row 06.
+2. A struct with fields gets the text of a unit struct with no constructor fn. The position is correct.
+3. `bad__name` is canonical by the D7 rule and imports as `bad_Name`. `good_` imports too. Not a refusal.
+4. Not run in C6: dev/rust-infer-gate.py, dev/rust-lower-gate.py, dev/rust-in-cli-gate.py (no importer file
+   changed), dev/rust-parse-gate.sh, dev/rust-out-diff-exec.sh (sandbox off). No DIFF-EXEC on the imported program.
+5. The C4 limit (a match or an `if` with no expected type) has no fixture. dev/BEND2-BASELINE.json is not updated.
+NEXT: review of C6, then the USER commits with W/COMMIT-MSG-C.txt. Unit C is then closed; the next M1 unit is open
+(candidates in "Scope of unit C", last paragraph).
+### 2026-10-05 C6 strict review and gate fixes
+
+Reviewed all 24 staged files in mechanism-lang-rust-m0 at a5e9ad1 and all four staged files in this planning
+repository. CI weakening check: no existing tests, lint rules, hooks or CI checks were removed or disabled.
+Three MEDIUM findings were reproduced and fixed:
+
+1. `dev/rust-in-gate.sh`: GOLDEN counted the expected directory rather than the produced directory, did not
+   compare the copied carrier, and RT-RUST compared only named files. Injecting an extra `.mech` or Rust file,
+   deleting the copied carrier, or corrupting it still returned RUST-IN-OK. The gate now checks the complete
+   output inventory, the carrier bytes, the Rust crate root inventory and the complete source tree.
+2. `dev/rust-in-gate.sh` and `c5-cli.sh`: `! -e` accepted a dangling output symlink as absent. A refusing
+   importer that left that symlink still passed. Refusal checks now require both `! -e` and `! -L`.
+3. `c4-lower.sh` and `c5-cli.sh`: success text could hide a failed driver or child gate. A driver printing
+   MECH-CHECK-OK and exiting 23 passed C4; child gates printing their expected marker and exiting 23 passed
+   both C4 and C5. The scripts now check exit status, preserve pipeline failures with pipefail, and require
+   the specific structural-termination diagnostic for C4's RED control.
+
+Validation: the original C6 gate passed 25 checks. The fixed gate passes 28, and all six injected faults that
+previously passed now fail. Separate failing-child probes turn C4 and C5 from exit 0 to exit 1. The normal
+C5-CLI-OK run includes C1, C2, C3, C4, RUST-LOWER-OK and RUST-INFER-OK. RUST-IN-CLI-OK passes all 14 cases
+through both the driver and real CLI. `cargo fmt --check` on the emitted golden crate passes through gateledger.
+The compiler sources and fixtures used for validation match the original worktree byte for byte. Driver and
+CLI builds were retained and reused for the fault probes. No importer source or Rust fixture was changed.
+
+Evidence is in ../gpt7/mech-rust-c6-evidence/: probe.py, before.json, after.json, children.json and their logs.
+Full normal C5 and CLI logs are retained in ../gpt7/.kanon-exec/run-1YeUXL and run-AxkIgH; formatting evidence
+is in run-ygHHsM. RUST-PARSE and DIFF-EXEC were not rerun because no unit A or B implementation changed.
+
+BLOCKERS: none remain. Merge verdict: merge with these fixes; the gates now reject every demonstrated false
+success. The pre-existing importer limits recorded above remain outside this staged implementation scope.
