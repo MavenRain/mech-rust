@@ -271,3 +271,71 @@ rust_import.js = 2cf81cc56a4a5a3f616a65c7de7fef969817a902fb6a3bba9153b6f979e2fb5
 rust_emit.js = dfb5c66d4ea4dc316f9b47a37ac4ec1b9bb5ff6bfe7619d33f797a27da0a57a7.
 Duplicate compilation attempts were canceled before those final runs. No remaining review blockers.
 All fixes and regression checks are staged. No commit or push.
+
+### 2026-10-05 D2 carrier merge, hand build in the main loop (claude7, session 01e6fab9): ROUND-TRIP-OK 57, RUST-IN-OK 28, DIFF-EXEC-OK
+
+Start state: the code worktree was at 4f1b5da and W was at 4307dc7. The USER committed D1. No agent ran in this sub-unit (U7). All edits and all gate runs came from the main loop.
+
+Design (DD6, confirmed as built):
+
+- The emitter writes one key line as the first line of each carried chunk: `-- at <file> start` or `-- at <file> after <name>`. `<name>` is the first name of the nearest runtime declaration before the chunk in the same file.
+- The importer splits the carrier into chunks with `Ro.chunks_of`. It reads the first line of each chunk as the key and removes that line. It puts the chunk lines in `<file>`, at the start or directly after the declaration `<name>`. Chunks with the same key keep the order of the carrier.
+- The merge runs before the kernel check. Thus the kernel checks each carried proof against the text that comes from the Rust files.
+- A file with no carried chunk keeps its lowered text. The importer also copies the carrier file with no change.
+- The merge has three refusals: `REFUSED carrier: the first line of a chunk is not a key line: <line>`, `REFUSED carrier: a chunk has no line`, `REFUSED carrier: the import has no place for the key line: <key>`.
+
+Files (code worktree, 12 paths, 424 insertions, 33 deletions):
+
+- `bend2/cli/rust_out.bend`: `words`, `join_lines`, `key_line`, `is_run`. `carry` keeps the name of the last runtime declaration, and `add_vd` writes the key line.
+- `bend2/cli/rust_in.bend`: the merge block (`Key`, `Kept`, `key_of`, `kept_all`, `merged_text`, `merge_ok`, `crate_merged`). `crate_files` is removed. `import_crate` gives the carrier text to the merge.
+- `bend2/rust/EMIT.md`, `bend2/rust/IMPORT.md`: the key line, the merge, the refusals, the limits.
+- `dev/rt-mech-gate.sh`: legs KEYS, COPY, two RED and two REFUSE on the seed `05_proofs`.
+- `dev/rust-in-gate.sh`: leg CARRIER. The other golden legs use a copy of the crate with no carrier file.
+- `test/rust/emit/crate/mech-carrier.mech`: the emitter wrote it again. It has 186 lines and 26 key lines. No other file of the golden crate changed.
+- `test/rust/seed/05_proofs/`, `test/rust/seed/06_two_files_proofs/`: new seeds with carried declarations in one file and in two files.
+
+Golden crate (DF5). With the merge, the import of the golden crate with its carrier fails: `MECH-CHECK-FAIL AuctionOrder takes 0 arguments and the term gives 2`. The golden crate of M0 is not a canonical program, and a carried declaration does not agree with the imported text. Decision in this session: RUST-IN has a new CARRIER leg that expects this refusal (exit code 65, no output). The legs GOLDEN, MECH-CHECK, RT-RUST and RED use a copy of the crate with no carrier file. `test/rust/import/expected/` has no change. The USER can change this decision.
+
+Gates on the staged code tree 651115f6:
+
+- ROUND-TRIP (`zsh dev/rt-mech-gate.sh`): `pass=57 fail=0`, `ROUND-TRIP-OK`. Six seeds, the D1 controls, and the D2 legs: KEYS (3 key lines), COPY (the carrier copy is byte-equal), RED carried proof dropped (`RT-MECH-FAIL`), RED fn body changed (`MECH-CHECK-FAIL`, exit code 65, no output), REFUSE key with no place in the import (exit code 65, no output), REFUSE carried chunk with no key line (exit code 65, no output).
+- RUST-IN (`zsh dev/rust-in-gate.sh`): `pass=28 fail=0`, `RUST-IN-OK`.
+- DIFF-EXEC (`zsh dev/rust-out-diff-exec.sh`): `DIFF-EXEC-OK 238 values`. In the sandbox the cargo step fails (`sccache: error: Operation not permitted`). The green run had the sandbox off. This run came before the two REFUSE legs were added to the ROUND-TRIP script. No emitter file and no importer file changed after this run.
+
+Limits:
+
+1. A key names a runtime declaration of the same file. If the import has no such name in that file, the command refuses the crate.
+2. A carrier with no key lines is refused. A carrier that the emitter wrote before D2 is such a carrier.
+3. The golden crate with its carrier is refused (see above).
+4. The merged text has no empty line between declarations. This is the format of the surface printer.
+5. No gate leg gives the refusal `a chunk has no line`. The chunk split makes no empty chunk from the carrier texts of the gate.
+
+Runner: `zsh /Users/oobi/Documents/mech-rust/d2-carrier.sh [smoke|golden|gates|exec|all]`. The mode `exec` runs DIFF-EXEC and needs the sandbox off.
+
+Open for the USER: the golden crate decision above. U8 and the use of wf-closer stay with no ruling.
+
+Staged: the 12 paths of the code worktree (tree 651115f6), and `d2-carrier.sh` and this file in W. No commit or push for D2. NEXT: D3.
+### 2026-10-05 D2 staged review and fixes (Codex)
+
+Reviewed all 12 originally staged code paths and both staged W paths. Kept the existing staged work and staged fixes in both repositories. No commit or push.
+
+Validation weakening was checked first. The runner could report failed gates and still exit successfully. The golden crate's new carrier refusal is consistent with DF5: M0 erasure is outside the canonical round-trip contract. The successful merge and byte-equal carrier-copy checks remain in ROUND-TRIP, and the kernel check remains mandatory.
+
+Findings fixed:
+
+1. HIGH, runner hides validation failures (`d2-carrier.sh`, functions `gates`, `diffexec`, `golden`, and `all`). Reproduction on the original staged runner: `env BEND=/usr/bin/false zsh d2-carrier.sh gates` prints both gate failures but returns 0. The runner now preserves failure statuses, rejects unexpected golden output or import results, and stops `all` when an earlier mode fails. `d2-carrier-test.py` exercises 22 success and failure cases in an isolated fixture root. The real failed-compiler reproduction now returns 1.
+2. MEDIUM, proof-only dependencies are missing from Rust module order (`bend2/cli/rust_in.bend`, `crate_merged`). A checked `z_base.mech` defining `Safe`, followed by `a_proof.mech` using `Safe` only in a proof, emits successfully but the staged importer returns 65 with `MECH-CHECK-FAIL Safe`. The carrier now records every source file in a second line, `-- files <file> ...`. The importer validates the complete permutation and restores it before inference and lowering, so implicit `MechBool` placement and carried anchors stay in the correct file. Seeds `07_carrier_order` and `08_carrier_bool_order` cover proof-only files, runtime-only files, erased dependencies, and the Boolean anchor. Three negative controls reject unknown, repeated, and missing files.
+
+Validation on the final code:
+
+- ROUND-TRIP: `pass=76 fail=0`, all eight seeds, mutations, and refusals. Capture: `/Users/oobi/Documents/gpt7/.kanon-exec/run-gE09Qz`.
+- RUST-IN: `pass=28 fail=0`. Capture: `/Users/oobi/Documents/gpt7/.kanon-exec/run-ZKjN1U`.
+- DIFF-EXEC: 238 matching values; the mutation control differs at 88 values. Capture: `/Users/oobi/Documents/gpt7/.kanon-exec/run-KzzIG3`. All generated Rust files remain byte-equal to the goldens; only the carrier metadata changed.
+- Runner: `RUNNER-OK 22 exit-status cases`; `zsh -n d2-carrier.sh` passed.
+- RUST-IN-CLI: all driver and full CLI publication/refusal cases passed. Capture: `/Users/oobi/Documents/gpt7/.kanon-exec/run-Mcz3eX`. The first attempt passed the driver cases but timed out compiling the CLI at the script's 180-second limit (`run-lwB0gx`). A separate compilation passed (`run-DoJtA9`), then the unchanged gate passed with `--driver` and `--cli` pointing to the compiled artifacts. A transient disk-floor hold cleared without deleting files.
+- Staged and unstaged whitespace checks passed. No Rust source was edited.
+
+Source hashes: `rust_in.bend` = `6da569d5e791133d2c505f79e1a4dc64e4cc6d68d47de4b6e9f2dcd01b90ac36`; `rust_out.bend` = `b1f52cf8cdb138735c5a07eb8ab6b3d1f8e5665f79693ed1bfc23c3052e5dfd2`.
+ROUND-TRIP driver hashes: `rust_import.js` = `4ddc609d6fe410594b902e4722e5129b7064ae9eb5c846cfd4c0ebf489975fe8`; `rust_emit.js` = `20f46e1365fd44f21758fc48fd20d6e136e7031d6542cf79cf9e3158fa80fe49`.
+
+No remaining review blockers. The M0 golden carrier is still intentionally refused as noncanonical; no kernel-check bypass was introduced. The code index contains 19 paths, and W contains the runner, its regression test, and this progress record. NEXT remains D3.
