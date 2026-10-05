@@ -387,3 +387,95 @@ Checks: c2-resolve.sh: rows=40 fn=22 data=7 variant=10 ctor=1 d7-back-bad=0 mech
 Open points: unused or unsorted `use` lines are not refused (RT-RUST in C6 catches them). Mech keyword names are left to the kernel parse in C4. A missing module text is refused at 0:0, because there is no file.
 NEXT: C3, fresh session. Read this entry and the C3 section.
 Then 3731b20 was COMMITTED (signed off, no Co-Authored-By) and PUSHED to origin/mech-rust/m1 on USER ask (2026-10-04, f710abb..3731b20).
+
+### 2026-10-04 C3 HALTED (claude7, session 1d9d2531): both wf-builder launches died before any file change
+
+State: HEAD 3731b20, the worktree and W have no change (`git status --short` empty in both after the two agents).
+Build mode U4: one wf-builder for C3 with a self-contained brief (the C3 sub-unit text, CD8, CD9, CD6, CD7, the
+C-LEARN spans L1, L3, L5, L6, the Bend 2 traps of C1 and C2, the runner W/c3-types.sh with a CD9 negative case).
+- Launch 1 (fable xhigh): stopped on the Fable usage limit (HTTP 429), req_011Cfi2bivypz7xTKRjZtpvY.
+- Launch 2 (the one opus xhigh relaunch with `[builder-tier-explicit]`): died on `[reasoning_extraction]`,
+  req_011Cfi2fXcCzJFChTTA79zyE.
+HALT per the tier rule. The main loop did not start a hand build: the step-budget hook stopped it at 12 steps with
+the context at about 96k, and a hand build needs a USER ruling (as for C1 and C2).
+Design notes for the next session (from the brief, HYPOTHESES): output line `<module> <mech fn name> : <telescope>
+annotated <n>`; the telescope is a Syntax.T printed with Syntax.show (so C4 reuses the value); types compare modulo
+TRef and TBox; the function table has each IFn, each IUnit constructor fn and the nat fns; the refusal reuses
+Rs.Bad and Rs.show at the item position; negative case: `match MechSum::MechInl(a.clone())` as a scrutinee.
+NEXT: USER ruling (hand build in a fresh session, or a builder launch later), then C3 per its sub-unit text.
+
+### 2026-10-04 C3 session 1, hand build (claude7, session 1d9d2531; USER RULED "Hand build here, now"): DRAFT, does not build yet
+
+State: HEAD 3731b20. bend2/rust/infer.bend NEW (draft, about 480 lines) and mode `types` in
+bend2/tests/rust_import.bend (defs `typed`, `inferred`, tag MTypes). Both STAGED, NOT committed. No runner yet.
+Check: `bend bend2/tests/rust_import.bend` stops at infer.bend:297, `expected '=' observed ')'`: the lambda form
+`(fun js => ...)` is wrong for Bend 2. Find the lambda form in a file that builds (rg for `Maybe.map` or
+`Result.bind` callers), and check the signatures of Maybe.map, Result.map and Result.bind that the draft guesses
+(`(&2, &2, A, B, x, f)` and `(&2, &2, &2, E, A, B, x, f)`). More build errors can follow.
+Trap: `bend bend2/rust/infer.bend` alone fails ("one namespace per file": resolve imports ../cli/rust_out.bend).
+Check through the driver only.
+Design of the draft (CD8, CD9):
+- Notes, not a typed tree: `Typed{module, rust, mech, pos, tele, notes}`. A note is NCtor{targs} for each XCtor and
+  NMatch{ret} for each XMatch, in pre-order (node, then children left to right, the scrutinee before the arms). C4
+  walks the body in the same order. Reason: a typed copy of the tree needs a second walker (no mutual recursion).
+- One @unsafe walker `walk(env, Result<String, St{jobs, notes}>)` with a non-recursive `step`. Jobs: JChk{locals,
+  e, want} and JArm{locals, fam, args, arm, want}. `synth` (XVar, XCall, wrappers; a non-generic XCtor becomes a
+  JChk) gives Syn{ty, jobs}. Types compare after `strip` (TRef, TBox removed).
+- Tables over ALL modules (resolve already checked the scope): sigs = each IFn, each IUnit ctor fn, nat_small
+  (u32 -> Nat) and nat_add (&Nat, &Nat -> Nat); fams = each IEnum; copies = IEnum with copy plus IUnit.
+- Telescope: `(0 G : Type 0)` for each generic, then `(<q> <camel(unkw(param))> : <mty>)`, then the return type.
+  q: TRef, TFn, TBool, Copy names -> many; other owned -> 1. mty: TBool -> MechBool, TCon -> application, TFn ->
+  arrows with binder `_`. Printed with Syntax.show.
+- Refusal: Rs.Bad at the fn item position, texts "type mismatch (CD9)", "argument count (CD9)", "constructor of a
+  generic family with no expected type (CD9)" and others.
+NEXT (fresh session): fix the build of the driver, write W/c3-types.sh (frame of c2-resolve.sh: 22 lines, names =
+the RkFn rows, no REFUSED; negative `match MechSum::MechInl(a.clone())` in a copy of init.rs gives the CD9 refusal
+at the `pub fn` line), rerun c1-lift.sh and c2-resolve.sh, then the log entry. Stage own paths.
+
+### 2026-10-04 C3 session 2, hand build (claude7, session 11b0b9ed): C3 DONE, all checks GREEN
+
+State: HEAD 3731b20. bend2/rust/infer.bend NEW and mode `types` in bend2/tests/rust_import.bend. Both STAGED, NOT
+committed. Runner W/c3-types.sh NEW. The design of the draft (session 1 entry) did not change.
+Build fixes to the draft (Bend 2 traps, candidates for C-LEARN):
+- A lambda is `x => body`, not `fun x => ...`. Signatures: Maybe.map(a, A, B, f, m), Result.map(a, b, E, A, B, f, r),
+  Result.bind(a, b, E, A, B, r, f). The file uses small named defs instead (cons_job, syn_of, ctor_ok, keep_item,
+  keep_done, append_typed, append_done), as the other files of the importer do.
+- No forward references, thus no mutual recursion: strip/strips, teq/teqs, subst/substs and mty/mtys/arrows are now
+  one @unsafe def over a list of types each (strips, teqs, substs, mtys). A TFn{args, ret} goes in as the list
+  `ret <> args`; `one` and `fn_of` give the result back.
+- A match on a computed value or on a consumed binder: give it its own def (ctor_fields, typed_of, env_sigs, one_m).
+- Termination check: the list argument first (apps(xs, h)).
+- A binder with two uses needs `+` (both branches of Bool.pick are eager): item_copies(p, +cs).
+- base.bend has no Nat.eq: same_len is structural.
+- SType takes a Bignum.T: Syntax.SType{Bignum.zero()}, with import ../kernel/bignum.bend.
+- One build of the driver to JS takes about 17 s.
+Output: Syntax.show marks the quantities ("0 ", "1 ", no mark for many). No binder of the golden crate has
+quantity 1: the generic params are `&A` (TRef, many), as in prelude/init.mech
+`mechBoolRec : (0 A : Type 0) -> A -> A -> MechBool -> A`.
+Checks (all GREEN):
+- c3-types.sh: fn-lines=22 resolve-fn-rows=22 same-names-in-order=True annotated-total=21; MATCH golden crate;
+  MATCH scrut (REFUSED src/init.rs:43:1: constructor of a generic family with no expected type (CD9)); C3-TYPES-OK.
+- c1-lift.sh: C1-LIFT-OK.  c2-resolve.sh: rows=40 fn=22 data=7, C2-RESOLVE-OK.  Disk: 38 GiB.
+- Not run: dev/rust-parse-gate.sh and dev/rust-out-diff-exec.sh (no file of A or B changed).
+Open points: each XCtor gets an NCtor note (an empty list for a family with no generics), so C4 takes one note for
+each XCtor and each XMatch, in pre-order. Only the byte comparison of C4 checks the telescopes in full. XInt checks
+against u32 only (the emitter image is nat_small(<n>)). Only one CD9 negative here; C6 has the fixture list.
+NEXT: C4, fresh session. Read this entry and the C4 section.
+### 2026-10-04 C3 staged review (Codex): four MEDIUM findings fixed
+
+Reviewed the complete staged diffs in mechanism-lang-rust-m0 and W, including the driver, inference pass,
+c3-types.sh and this progress log. No CI or check weakening. The four reproduced findings were:
+- Pattern field counts: Foo::Bar(y, _) or Foo::Bar against Bar(bool) incorrectly succeeded. Check binder arity.
+- Match coverage: missing, duplicate or empty arms against an inhabited family incorrectly succeeded. Consume
+  each variant exactly once; preserve empty-family elimination and allow constructor order changes.
+- Type arity: Foo without its declared generic, Foo<bool> without generics, A<bool>, and malformed enum fields
+  or unused call type arguments incorrectly succeeded. Validate signatures, fields and call types in scope.
+- Local callbacks: f::<bool>(x) incorrectly succeeded although f has no generic telescope. Refuse local type args
+  both when checking a call and when synthesizing a match scrutinee.
+Changes: inference validates these cases with item-position refusals. dev/rust-infer-gate.py adds 32 cases;
+W/c3-types.sh invokes it using the same compiled driver as its original checks.
+Validation: the original staged driver fails all 14 new negative cases. The fixed driver passes all 32 cases,
+all 22 golden function rows, and byte comparisons of golden types, resolve and lift output against the staged
+baseline. Existing CD9, argument and closure refusals are preserved. Driver compilation and shell syntax pass.
+The bare global-function-value probe is outside the current emitter image and remains refused.
+No remaining review blockers. Fixes staged for user review; NEXT remains C4.
