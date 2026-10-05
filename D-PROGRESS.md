@@ -339,3 +339,46 @@ Source hashes: `rust_in.bend` = `6da569d5e791133d2c505f79e1a4dc64e4cc6d68d47de4b
 ROUND-TRIP driver hashes: `rust_import.js` = `4ddc609d6fe410594b902e4722e5129b7064ae9eb5c846cfd4c0ebf489975fe8`; `rust_emit.js` = `20f46e1365fd44f21758fc48fd20d6e136e7031d6542cf79cf9e3158fa80fe49`.
 
 No remaining review blockers. The M0 golden carrier is still intentionally refused as noncanonical; no kernel-check bypass was introduced. The code index contains 19 paths, and W contains the runner, its regression test, and this progress record. NEXT remains D3.
+
+### 2026-10-05 D3 open points of the importer, hand build in the main loop (claude7): RUST-IN-OK 31, RUST-PARSE-OK 35, ROUND-TRIP-OK; D3 NOT complete
+
+Start state: the code worktree was at 4e9e30a and W was at e5737d7. The USER committed D2. Two wf-builder launches died on `[reasoning_extraction]` before any file change (fable xhigh req_011Cfjk8BwJv4Tcuk3aLwDSz; opus xhigh with the marker req_011CfjkDQ9QwqUuCYi6516Jq). No third launch. The hand build ran on default U7.
+
+Point 1, use before the declaration (DONE):
+
+- `resolve.bend`: `check_items` has a second scope, `seen`: the used modules and the items up to the present item. A name that the module has, but that `seen` does not have, is refused by `early_at`. `after_space` makes the text from the text of the name check.
+- Text: `use of the function `<name>` before its declaration (mutual recursion or a forward reference)`. The position is the position of the item that has the use.
+- The plan hypothesis is confirmed for fns: the golden crate and all seeds stay green, so no canonical crate has a use of a later item.
+
+Point 2, struct with fields (DONE):
+
+- `lift.bend`: `unit_body` takes the name and has `body_ok`. A struct with fields gives `struct `<name>` with fields`. A struct with generics gives `struct `<name>` with generics`. This check now comes before the `Copy` check. A struct with no fn after it gets the same check first, then the old text.
+- The old text `struct with generics or fields` is removed. No fixture and no doc had it.
+
+Point 3, the name map (PART DONE, plan hypothesis CHANGED):
+
+- Fact: the mech name `bad_Name` gives the Rust name `bad__name` and comes back as `bad_Name`. The mech name `good_` gives `good_` and comes back as `good_`. Seed `09_names` shows SEED-CHECK, EMIT, IMPORT, RT-RUST, FIXPOINT and RT-MECH for the two names. Thus the two examples of the plan are wrong: mech names give these Rust names, and the importer must not refuse them. No importer change.
+- Reason: with f = D7 and g = its inverse, the importer accepts r only if f(g(r)) = r. Then g(r) comes back from f, so the map is a bijection between the accepted Rust names and their mech names.
+- NOT built: the emitter side. `rust-out` has no check that g(f(m)) = m. By the rule, the mech names `bad__name` and `type_` give the Rust names of `bad_Name` and `type`, and they do not come back. No probe and no gate shows this. Wanted: a refusal `refused <name>: ... (D7)` in `rust-out`, or a RED control in ROUND-TRIP if a golden input has such a name.
+- Side fact: the emitter writes an identity `case` on MechBool as `b`. The first text of seed `09_names` had such a body, and RT-MECH gave `RT-MECH-FAIL good_`. The seed now has a negation in the two fns. A seed with an identity `case` on MechBool is not canonical.
+
+EXPECTED.tsv (11 rows): rows 02 and 06 changed; rows 09_unit_no_ctor, 10_tuple_struct, 11_forward_reference are new.
+
+Gates:
+
+- RUST-IN: `pass=31 fail=0`, `RUST-IN-OK`. This run came before the change of the seed body and of IMPORT.md. No importer file changed after it.
+- RUST-PARSE: `pass=35 fail=0`, `RUST-PARSE-OK`.
+- ROUND-TRIP, after the seed change: `work=/tmp/claude-501/rt-mech-gate pass=84 fail=0`, `ROUND-TRIP-OK`.
+- NOT run: DIFF-EXEC (no emitter file and no golden file changed), the Python gates and RUST-IN-CLI.
+
+Limits: the position of the new refusal is the item, not the use. No fixture has a use of a later type or constructor, or a struct with generics.
+
+Runner: `zsh /Users/oobi/Documents/mech-rust/d3-points.sh [in|rt|parse|gates|exec|all]`. The exit code is not 0 when a gate fails. It has no regression test.
+
+Staged: `lift.bend`, `resolve.bend`, `IMPORT.md`, `EXPECTED.tsv`, three new fixtures, seed `09_names` in the code worktree; `d3-points.sh` and this file in W. No commit or push. NEXT: D3 session 2 (the emitter side of point 3, with the Python gates and DIFF-EXEC), then D4.
+
+Added after the gate run. These facts come from the code and from `EXPECTED.tsv`, with no new run:
+
+- The importer side of point 3 has a fixture row already. Row `04_name_not_canonical` refuses `badName`, a Rust name that no mech name gives (CD5).
+- The emitter has the collision check of D7: `refused: name collision (D7): <name>`. Thus two mech names with the same Rust name in one crate are refused. A single mech name that does not come back is not refused, for example `bad__name` in a crate with no `bad_Name`. The emitter side of point 3 is this case only.
+- Staged trees: code ffe5230e (12 files). The W tree changes with this note, see `git write-tree`.
