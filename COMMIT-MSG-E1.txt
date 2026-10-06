@@ -1,0 +1,10 @@
+E1: emit `let` and accept the let RIR in every walker
+
+Add `XLet{name, ty: Maybe<Ty>, value, body}` to the RIR. The emitter plans
+a `Term.Let` of a Copy-typed binder as `{ let x: T = v; body }` (a let in
+tail position is flattened into the fn block); a non-Copy, function,
+type-sorted or name-colliding binder is a located refusal. The importer
+walkers (resolve, infer, lower, rust_out refs) accept `XLet`; the lifter
+does not produce it yet (next slice).
+
+Fixture: test/rust/emit/let_probe.mech (E1-EMIT-OK, rustfmt clean).

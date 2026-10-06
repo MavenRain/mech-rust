@@ -88,6 +88,7 @@ parse() { gate RUST-PARSE dev/rust-parse-gate.sh }
 py() {
   local rc=0
   pygate RUST-INFER dev/rust-infer-gate.py || rc=1
+  pygate RUST-LET dev/rust-let-gate.py || rc=1
   pygate RUST-LOWER dev/rust-lower-gate.py || rc=1
   pygate RUST-IN-CLI dev/rust-in-cli-gate.py || rc=1
   return $rc

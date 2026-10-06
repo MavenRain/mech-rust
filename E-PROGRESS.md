@@ -196,3 +196,14 @@ L5  (ED2) The emitter's in-scope value binders are `vs: List<Maybe<R.Param>>` in
     initializer that reads the outer binder, such as `let x := a in let y := x in y`.
 NEXT: steps 3-7 of the plan above, in a session launched with CLAUDE_STEP_BUDGET=0.  Start with
 `zsh ~/Documents/mech-rust/e1-let.sh learn`.
+
+### E1 session 2 (2026-10-06, hand build, claude7)
+Decisions (fold of HANDOFF-E1.md F1-F8):
+- F2: `R.XLet{name, ty: Maybe<Ty>, value, body}`; the emitter always gives `Some{ty}`, the lifter keeps `None` for `let y = x;`.
+- F3 ownership: the binder enters `vs` as an owned `Some{Param{rn, t}}`. E1 accepts a binder of a Copy type only (`let_copy`: TBool or a Copy family); a non-Copy, function or type-sorted binder is a located refusal; an EProp binder is erased like a proof parameter.
+- ED2/L5: `let_clash` = `has_slot(vs, rn) || global_clash(entries, rn)` with `fn_name(global)`; refusal text "the let binder `rn` collides with a name in scope after the name map (E1)".
+- Emit shape: a let in tail position is flattened into the fn block (`tail` flattens `A.EBlock`); a let in argument position stays a block (`let_arg` in let_probe.mech).
+- Importer: resolve checks the type, the initializer in the outer locals and the body with the binder; infer checks the value against `Some{t}` or synthesizes it (U13: refusal "let `x` with no type (E1)" when synth fails); lower gives `Syntax.SLet{name, mty(t), value, body}` with `t` from the first child job.
+- Bend 2 traps hit: a match scrutinee must be a parameter (helper def per computed scrutinee); shared `ks`/`vs`/`t` need `+`; no forward references (`let_t` sits above `lows`).
+Done: rir XLet; erase_typed BLet/let_plan/let_rx/uses arm; emit tail/let_ty/nodes arm; resolve/infer/lower XLet arms; rust_out exs_refs arm; test/rust/emit/let_probe.mech; `e1-let.sh emit` = E1-EMIT-OK 24 lines rustfmt clean.
+OPEN (next session): lift.bend KLet (tail_job for `SLet{PPath{name}, ty, Some{init}} <> rest`, refusals "`let` without an initializer" / "`let` with a pattern" / "`let` with no tail expression", `kind(EBlock{SLet..})`, walk arm -> `R.XLet`); fixtures (neg_classify rows negLetParam/negLetShadow/negLetGlobal/non-Copy, remove refuse/01_let row+dir, add 12_let_mut, python table rows F7, seed 10_let + RED control in rt-mech-gate.sh); docs EMIT.md/IMPORT.md let sections + ROUNDTRIP.md; `e1-let.sh all` against baselines parse 35 / in 31 / rt 90 / 22 golden fns.
