@@ -382,3 +382,74 @@ Added after the gate run. These facts come from the code and from `EXPECTED.tsv`
 - The importer side of point 3 has a fixture row already. Row `04_name_not_canonical` refuses `badName`, a Rust name that no mech name gives (CD5).
 - The emitter has the collision check of D7: `refused: name collision (D7): <name>`. Thus two mech names with the same Rust name in one crate are refused. A single mech name that does not come back is not refused, for example `bad__name` in a crate with no `bad_Name`. The emitter side of point 3 is this case only.
 - Staged trees: code ffe5230e (12 files). The W tree changes with this note, see `git write-tree`.
+
+### 2026-10-05 D3 session 2, the emitter side of the name map (claude7, hand build in the main loop): RUST-IN-OK 31, ROUND-TRIP-OK 90, RUST-PARSE-OK 35, RUST-INFER-OK, RUST-LOWER-OK, RUST-IN-CLI-OK, DIFF-EXEC-OK 238 values
+
+Builder deaths: two wf-builder launches died on `[reasoning_extraction]` before any tool call (fable req_011CfjsD5vrveB9awqB226g1; opus with the marker req_011CfjsFxe99BXc1JGCf8vSH). No third launch. The hand build ran in the main loop, as in D1 to D3.
+
+Probe facts (before the edit):
+
+- `bad__name` was emitted as `pub fn bad__name` and imported back as `def bad_Name`. This was a silent rename with rc 0.
+- The parameters `fooBar` and `foo_bar` in one fn were emitted as a duplicate Rust parameter `foo_bar`. They imported back as two `fooBar` binders. This is a recorded Limit, not fixed (see Limits).
+
+What changed:
+
+- Code worktree `/Users/oobi/Documents/mechanism-lang-rust-m0` (branch `mech-rust/m1`, HEAD 690b5ab):
+  - `bend2/rust/erase_typed.bend`: new inverse-name defs `is_under`, `camel_step`, `camel_rest`, `camel`, `lower_first`, `drop_head`, `unkw`, `fn_back`, `back_text`. New checks `ctor_kept` (in `variants`), `name_kept`, `unit_kept` (in `unit_class`) and `fn_class` (in `head_class`). The emitter (`rust-out`) now refuses a mech name m when its Rust name r = f(m) does not come back through the importer inverse g (g(r) != m).
+  - `bend2/rust/resolve.bend`: the local inverse defs are removed. It calls `Et.fn_back` and `Et.lower_first`. There is now one definition for the emitter and the importer.
+  - `bend2/rust/infer.bend` (line about 196) uses `Et.fn_back`.
+  - `bend2/rust/lower.bend` imports `erase_typed.bend` as `Et` and uses `Et.lower_first` at 3 sites.
+  - `test/rust/seed-control/`: three new controls (below).
+  - `dev/rt-mech-gate.sh`: a `want` table and a control loop (a SEED-CHECK step and a REFUSE step for each control).
+  - `bend2/rust/EMIT.md`: two new bullets in `## Names (rule D7)`, a row in the Refusals table, and the text about `neg_classify.mech` changed (see the classify line below).
+  - `bend2/rust/IMPORT.md`: the bullet near line 77 now says that the emitter refuses a name that does not come back, and it names the three controls.
+  - `test/rust/emit/neg_classify.mech`: the header comment for line 2 of the result is updated.
+- Two fixes during the build: the helper `kept` clashed with an existing `def kept` in `erase_typed.bend`, so it is now `name_kept`. `unit_kept` first used the variant name as the mech name and refused `MechUnit` (RUST-IN fail x2); now it uses `mech = lower_first(ctor)`.
+- W `/Users/oobi/Documents/mech-rust` (HEAD 4bc94df): `d3-points.sh` has a new `py` mode (the three Python gates). `all` is now gates + py + diffexec. This file has this entry.
+
+Refusal text and the three controls:
+
+- Text: `refused <def>: a name that does not come back from the Rust name `<rust>`: the importer gives `<back>` (D7)`. Exit 65. No output dir.
+- `names_double_underscore.mech` (`def bad__name`): `refused bad__name: ... Rust name `bad__name`: the importer gives `bad_Name` (D7)`.
+- `names_keyword_tail.mech` (`def type_`): `refused type_: ... `type_`: the importer gives `type` (D7)`.
+- `names_upper_ctor.mech` (`mu Light` with the constructor `Red`): `refused Light: ... `Red`: the importer gives `red` (D7)`.
+- Each control passes SEED-CHECK (`MECH-CHECK-OK 1 rows axioms=0`) and is then refused.
+
+Gates (logs in /tmp/claude-501/d3s2/):
+
+- RUST-IN: `pass=31 fail=0`, `RUST-IN-OK`.
+- ROUND-TRIP: `work=/tmp/claude-501/rt-mech-gate pass=90 fail=0`, `ROUND-TRIP-OK`.
+- RUST-PARSE: `pass=35 fail=0`, `RUST-PARSE-OK`.
+- RUST-INFER: `RUST-INFER-OK` (`== RUST-INFER rc=0`).
+- RUST-LOWER: `RUST-LOWER-OK` (`== RUST-LOWER rc=0`).
+- RUST-IN-CLI: `RUST-IN-CLI-OK` (`== RUST-IN-CLI rc=0`).
+- Runner modes: `D3-RUNNER mode=gates rc=0`, `D3-RUNNER mode=py rc=0`, `D3-RUNNER mode=exec rc=0`.
+- DIFF-EXEC: `DIFF-EXEC-OK 238 values`, `== DIFF-EXEC rc=0`, `EXEC-DONE rc=0`. No golden input (`init.mech`, `second-price.mech`) was refused with "does not come back".
+- classify on `test/rust/emit/neg_classify.mech` with `prelude/init.mech` (rust_emit.js classify, rc=0), result lines after the `## 2` header:
+  - `refused negPostulate: a postulate in the runtime`
+  - `fn negTwin = pub fn neg_twin() -> MechNat`
+  - `refused neg_twin: a name that does not come back from the Rust name `neg_twin`: the importer gives `negTwin` (D7)`
+  - `names: no collision`
+  - Line 2 of the result is now the come-back refusal of `neg_twin`, not a name collision. The comment in `neg_classify.mech` and the two sentences in `EMIT.md` now say this.
+
+Not run: the modes ran in three separate runs (`gates`, `py`, `exec`). A full `all` rerun in one go was not run. The doc edits to `EMIT.md` and `neg_classify.mech` came after the gates, and they changed no code.
+
+Limits:
+
+- The parameters and the local binders of a fn are not checked. The case `fooBar` and `foo_bar` in one fn gives a duplicate Rust parameter `foo_bar` and imports back as two `fooBar` binders. This is not fixed.
+- Two fn names that give the same Rust name cannot reach the collision check in the classify table any more. One of the two names does not come back and is refused first. The collision check stays in the code.
+- Stop rule (a golden input refused with "does not come back": do not change the check, ask the USER): it did not fire. DIFF-EXEC shows no such refusal. Nothing needs a USER ruling.
+
+Staged (no commit, no push):
+
+- Code worktree (11 files): `bend2/rust/erase_typed.bend`, `bend2/rust/resolve.bend`, `bend2/rust/infer.bend`, `bend2/rust/lower.bend`, `bend2/rust/EMIT.md`, `bend2/rust/IMPORT.md`, `dev/rt-mech-gate.sh`, `test/rust/seed-control/names_double_underscore.mech`, `test/rust/seed-control/names_keyword_tail.mech`, `test/rust/seed-control/names_upper_ctor.mech`, `test/rust/emit/neg_classify.mech`. Tree: `87710d77d0a8762cb341d6319fc84c1f46a10402`.
+- W (2 files): `D-PROGRESS.md`, `d3-points.sh`. Tree: `7a83ca8e3bb67d7cb1db87faf6cc76f2d5a73a8b` before this line was filled in. The tree changes with this line, so the `git write-tree` printed last is authoritative..
+
+Commit commands for the USER:
+
+```
+git -C /Users/oobi/Documents/mechanism-lang-rust-m0 commit -s -m "rust-out: refuse a name that does not come back from its Rust name (D3)"
+git -C /Users/oobi/Documents/mech-rust commit -s -m "D3 session 2: log the emitter name check, add the Python gates mode"
+```
+
+NEXT: D4 close in a fresh session (`bend2/rust/ROUNDTRIP.md`, the limits in `IMPORT.md` and `EMIT.md`, `W/COMMIT-MSG-D.txt`, a full `all` rerun).
