@@ -1,0 +1,48 @@
+rust frontend: document the seed round trip and D4 validation limits
+
+Add bend2/rust/ROUNDTRIP.md, the reference page of the round trip
+between `rust-out` and `rust-in` on the nine seed programs:
+
+- The canonical program: the M0 fragment, carried declarations with
+  key lines, no quantity-0 binder that is not a type, no erased Prop
+  field, no index, no postulate, D7 names and matching ascriptions.
+  These restrictions are not a complete acceptance test for the laws.
+  The two M0 inputs are not canonical.
+- The laws SEED-CHECK, RT-RUST, FIXPOINT and RT-MECH, and the compare
+  `alpha` of roundtrip.bend (kernel terms up to bound names, strict on
+  ascriptions). RT-MECH has no separate rows for mu families; RT-RUST
+  checks emitted family structure.
+- The seed corpus test/rust/seed (nine programs) and the control
+  programs of test/rust/seed-control.
+- The carrier merge keys, with pointers to EMIT.md and IMPORT.md.
+- The ROUND-TRIP gate dev/rt-mech-gate.sh, each of its checks and
+  controls, and its known limits.
+
+Refresh the limits of the two other pages:
+
+- IMPORT.md: the last known limit said that RT-MECH is not a gate. It
+  now names the ROUND-TRIP gate on the seed corpus and DIFF-EXEC on the
+  golden crate. The intro names ROUNDTRIP.md.
+- EMIT.md: the tests list names the ROUND-TRIP gate as the gate that
+  runs the emitter on the seed corpus, with the three `names_*`
+  controls as the fixtures of the name that does not come back. The
+  intro names ROUNDTRIP.md.
+
+No source file changes.
+
+Gate: zsh dev/rt-mech-gate.sh gives pass=90 fail=0 and ROUND-TRIP-OK.
+zsh dev/rust-in-gate.sh gives pass=31 fail=0 and RUST-IN-OK.
+zsh dev/rust-parse-gate.sh gives pass=35 fail=0 and RUST-PARSE-OK.
+python3 dev/rust-infer-gate.py gives RUST-INFER-OK and
+python3 dev/rust-lower-gate.py gives RUST-LOWER-OK.
+zsh dev/rust-out-diff-exec.sh gives DIFF-EXEC-OK 238 values.
+python3 dev/rust-in-cli-gate.py was not shown green on this commit: its
+180 second build limit expired two times on a loaded machine (the build
+alone passes in 382 seconds). No source file changed since the last
+green run of that gate.
+
+Review validation also runs rust-in-cli-gate.py with its supported
+--driver and --cli options against the existing D4 build artifacts:
+RUST-IN-CLI-OK, including all 28 named cases and six usage checks.
+This does not establish a fresh build within the unchanged 180 second
+limit. D4 closure remains pending that full validation.

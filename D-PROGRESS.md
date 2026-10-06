@@ -453,3 +453,58 @@ git -C /Users/oobi/Documents/mech-rust commit -s -m "D3 session 2: log the emitt
 ```
 
 NEXT: D4 close in a fresh session (`bend2/rust/ROUNDTRIP.md`, the limits in `IMPORT.md` and `EMIT.md`, `W/COMMIT-MSG-D.txt`, a full `all` rerun).
+
+## D4 documentation and partial validation 2026-10-05 (claude7, hand build in the main loop)
+
+Both builder launches died on the `[reasoning_extraction]` classifier before their first tool call (fable req_011Cfk8rSbLt77wMf7XMvzpS; opus with the marker req_011Cfk8w4PkXuJ696528ef7w). Per U7 the close is a hand build in the main loop.
+
+Files (code worktree, branch mech-rust/m1, base 13daf80):
+
+- `bend2/rust/ROUNDTRIP.md` (new): the reference page of unit D. Sections: Files, Canonical program, Laws (SEED-CHECK, RT-RUST, FIXPOINT, RT-MECH and the compare `alpha`, strict on `Ann`), Seed corpus (the nine seeds and the four controls), Carrier merge (pointers to EMIT.md and IMPORT.md), Gate (each check and control, `pass=90 fail=0`), Known limits. The review below narrows the contract and records additional limits.
+- `bend2/rust/IMPORT.md`: one intro sentence names ROUNDTRIP.md. The last known limit (RT-MECH and DIFF-EXEC are not gates of this unit) was stale since D1; it now names the ROUND-TRIP gate on the seed corpus and DIFF-EXEC on the golden crate. No other bullet changed.
+- `bend2/rust/EMIT.md`: one intro sentence names ROUNDTRIP.md. One bullet in the Tests list names the ROUND-TRIP gate as the gate that runs the emitter on the seed corpus and the `names_*` controls. No other bullet changed.
+- W `COMMIT-MSG-D.txt` (new): the commit message of the D4 commit, in the shape of COMMIT-MSG-C.txt.
+
+Limits carried into ROUNDTRIP.md: strict compare on ascriptions (U8 default); no come-back check on parameters and local binders; the M0 fragment only; the gate runs the seed corpus and the controls, not the two M0 inputs; the carrier copy in the import is a record only; a forward-reference refusal has the position of the item; the GREEN control is on seed 01 only. Not carried: the D2 limits block (D-PROGRESS.md line 305) and the U8 decision text (line 161) were not re-read in this session (a classifier denial); the page says only what the gate script, the driver modes, IMPORT.md and EMIT.md show.
+
+Full rerun `zsh ~/Documents/mech-rust/d3-points.sh all` with the sandbox off (log /tmp/claude-501/d4/all.log):
+
+- RUST-IN: `pass=31 fail=0`, `RUST-IN-OK`, `== RUST-IN rc=0`.
+- ROUND-TRIP: `pass=90 fail=0`, `ROUND-TRIP-OK`, `== ROUND-TRIP rc=0` (the three `names_*` REFUSE controls PASS).
+- RUST-PARSE: `pass=35 fail=0`, `RUST-PARSE-OK`, `== RUST-PARSE rc=0`.
+- RUST-INFER: `RUST-INFER-OK`, rc=0. RUST-LOWER: `RUST-LOWER-OK`, rc=0.
+- RUST-IN-CLI: rc=1 on a `subprocess.TimeoutExpired` while building the CLI (`bend2/mech.bend`, `timeout=180`). All 14 driver cases printed PASS before this build; the CLI cases did not run. No check line failed. This runner finishes ROUND-TRIP before starting the Python gates. `D3-RUNNER mode=all rc=1`, so DIFF-EXEC did not run in that pass.
+- Second pass, `py` then `exec` with the sandbox off (logs /tmp/claude-501/d4/py.log, /tmp/claude-501/d4/exec.log):
+  - RUST-INFER: `RUST-INFER-OK`, rc=0. RUST-LOWER: `RUST-LOWER-OK`, rc=0.
+  - RUST-IN-CLI: rc=1 again, the same `subprocess.TimeoutExpired`: the build `bend bend2/mech.bend -o <tmp>/rust-in.js` timed out after 180 seconds. `D3-RUNNER mode=py rc=1`.
+  - DIFF-EXEC: `DIFF-EXEC-OK 238 values`, `== DIFF-EXEC rc=0`, `D3-RUNNER mode=exec rc=0`.
+- Build timing evidence for the RUST-IN-CLI red (log /tmp/claude-501/d4/build-time.log): the same build run by hand passes (`BUILD-RC=0`, a 3.3 MB `mech-cli.js`) in 381.82 seconds, with the machine at load average 17 to 25. The limit `timeout=180` in `dev/rust-in-cli-gate.py` line 123 is below this measured build time. Both failed gate runs passed the 14 driver cases, then timed out before any CLI case ran. No code changed in D4, and the gate was GREEN in D3 session 2 on the same code. Not changed: the limit (a code change, for the USER to rule). To complete the fresh-build validation, run `zsh ~/Documents/mech-rust/d3-points.sh py` on a quiet machine and require `RUST-IN-CLI-OK`.
+- Status of the D4 full rerun: 6 of 7 gates GREEN on this code (RUST-IN, ROUND-TRIP, RUST-PARSE, RUST-INFER, RUST-LOWER, DIFF-EXEC); RUST-IN-CLI NOT SHOWN (timeout under load, two passes).
+
+Staged (no commit, no push): code worktree `bend2/rust/ROUNDTRIP.md`, `bend2/rust/IMPORT.md`, `bend2/rust/EMIT.md`, tree 7c88e1b3ad86b4486ec1002f3bdf784139010778; W `COMMIT-MSG-D.txt` and this file (the `git write-tree` printed last is authoritative).
+
+Commit commands for the USER:
+
+```
+git -C /Users/oobi/Documents/mechanism-lang-rust-m0 commit -s -F /Users/oobi/Documents/mech-rust/COMMIT-MSG-D.txt
+git -C /Users/oobi/Documents/mech-rust commit -s -m "D4: record the reference page and validation limits"
+```
+
+NEXT: D4 closure remains pending the successful fresh-build validation above; committing the documentation alone does not complete it. Open from the brief: U8 (strict compare on ascriptions) and the golden carrier stay with the USER. After D closes, the next M1 unit per the D scope is E (struct with private fields, accessors and `let`), in a fresh session.
+
+### Staged review 2026-10-05 (Codex)
+
+Reviewed all five staged files across the code and W repositories. No code, test or CI configuration change was staged. Two MEDIUM documentation findings were fixed:
+
+1. The reference page claimed the laws for any program satisfying an incomplete canonical checklist. The existing `names_double_underscore.mech` passes the kernel check but is refused with D7. Removing the ascription from `(lightGreen : Light)` in seed 01 passes the kernel check, emission and import, but gives `RT-MECH-FAIL lightNext`. The three reference pages now scope the results to the nine seeds and state the name, erasure and ascription restrictions. ROUNDTRIP.md also records that `mu` families have no separate checked rows: swapping constructors in two family-only programs gives `RT-MECH-OK 0`, so RT-RUST remains necessary.
+2. The close record treated a commit as sufficient despite the incomplete required rerun, and incorrectly said no gate checks ran. The logs show 14 driver cases passed before each CLI build timeout. The close record and commit message now preserve the pending fresh-build validation and distinguish the driver from the CLI.
+
+Review validation: the three reproduction probes pass (`REVIEW-PROBES-OK`). The unmodified CLI gate passes with its supported prebuilt inputs, including 28 named cases and six usage checks:
+
+```sh
+python3 dev/rust-in-cli-gate.py --driver "$TMPDIR/rt-mech-gate/rust_import.js" --cli /tmp/claude-501/d4/mech-cli.js
+```
+
+Result: `RUST-IN-CLI-OK`. The driver and CLI artifacts were built during the original D4 validation after base 13daf80; the code, tests and gate scripts have no changes from that base. Artifact SHA-256: driver `8233f72959923fef14b08123afcadb5a823c73631fddfc3e7f10282aabec5a30`, CLI `0cd36059b865f03147f2aa0ed7d7b639e2bb1659f91669348a81a5a380bf29c8`. This checks the existing builds and does not establish a fresh build within 180 seconds. The timeout and gates are unchanged.
+
+Review evidence in `/Users/oobi/Documents/gpt7`: `mech-rust-review/probe.py`, `.kanon-exec/run-9vaBRx` (probes), `.kanon-exec/run-BzfUFE` (CLI gate). The earlier six green gate results remain the original D4 evidence; they were not rerun for these documentation corrections.
