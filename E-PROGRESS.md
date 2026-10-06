@@ -270,3 +270,24 @@ passed 99 checks with the expanded seed. The first combined importer attempt and
 the full CLI gate remains unverified and is still required before committing.
 Review artifacts and complete execution logs are under /Users/oobi/Documents/gpt7/mech-rust-e1-review.
 No commit or push was made.
+
+## E2 session 2 (2026-10-06, claude7, session d9d08cca): no code change, builders dead
+- Start state: the USER committed E1 (code 6ed4700, W 373cdae). Both trees were clean. CLAUDE_STEP_BUDGET was not set.
+- Stop check: the visible part of `rg -n -A4 '^mu ' test/rust/seed test/rust/emit` showed one-constructor families only
+  of sort Prop (LightSafe, MechEq, Safe, TallyEq).  Part of the output was cut.  Do the check again before the first edit.
+- Builders: the fable wf-builder died on the Fable usage limit (HTTP 429), req_011CfmT6eu1pzRZrrj2T4Wur.  The opus
+  fallback with `[builder-tier-explicit]` died on `[reasoning_extraction]`, req_011CfmT8jXd8wQBMGhVcVFpa.  Both died
+  before an edit.  Delegation halted (ruling 10-05).
+- Hand build not started: the step-budget hook allows 20 messages for each user turn.  E2 needs more (about 20 walker
+  arms, Bend builds under load 32, five gates).
+- Walker sites, confirmed at HEAD 6ed4700 (each needs an arm for IStruct or PStruct):
+  - bend2/cli/rust_out.bend:129 (PCtor arm), :170-176 and :189-195 (Item arms).
+  - bend2/rust/lower.bend:134 and :162 (PCtor arms), :435-441 (Item arms).
+  - bend2/rust/infer.bend:231-233, :254-256, :694-696 (Item arms), :550 and :626 (PCtor arms).
+  - bend2/rust/emit.bend:84-86 (pattern), :207-214 (items).
+  - bend2/rust/lift.bend:231, :235, :702-720 (producers only, no new arm).
+  - bend2/tests/rust_emit_oracle.bend:68-70;  bend2/tests/rust_emit.bend:32-48.
+  - bend2/rust/resolve.bend:  sites in HANDOFF-E2.md, not confirmed in this session.
+- Runner: e1-let.sh `py` mode runs dev/rust-in-cli-gate.py.  e2-struct.sh must not run it (the USER runs it on a quiet box).
+- NEXT: hand build E2 from HANDOFF-E2.md in a fresh session launched with CLAUDE_STEP_BUDGET=0, or delegate again to
+  a fable wf-builder after the Fable usage limit resets.
