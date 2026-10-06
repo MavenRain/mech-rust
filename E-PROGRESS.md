@@ -155,3 +155,44 @@ in emit.bend, one emit fixture with two lets (one nested in a non-tail position)
 `Syntax.SLet`;  01_let becomes an import fixture, a new REFUSE crate for `let mut`, and one for a let that infer
 cannot type if such an initializer exists in the fragment;  (5) seed `10_let`, ROUND-TRIP, RUST-IN, RUST-PARSE,
 the Python gates;  (6) EMIT.md, IMPORT.md, ROUNDTRIP.md line 102;  (7) the E1 log entry, both write-trees.
+
+### 2026-10-05 E1 session 1 (claude7): steps 1 and 2 done (runner, learn), no code change
+
+The session was launched without CLAUDE_STEP_BUDGET=0, so the step-budget hook (deny at 20 steps) ended the work
+after the learn step.  The code worktree is clean at 9f1fc14.  The USER committed the E plan as W 44f9584 and
+added the variable-capture requirement to ED2.  Runner: `zsh ~/Documents/mech-rust/e1-let.sh [learn|emit|in|rt|
+parse|py|all] [nobuild]` (drivers to $TMPDIR/e1;  `emit` wants the fixture test/rust/emit/let_probe.mech, which
+does not exist yet;  DIFF-EXEC stays in d3-points.sh).
+L1  rir.bend has no block and no let.  `Ex` is XVar, XInt, XBool, XCall, XCtor, XMatch, XIf, XClosure, XBorrow,
+    XClone, XBox (rir.bend:31-42).  Plan: one constructor `XLet{name: String, ty: Ty, value: Ex, body: Ex}`;
+    no block node (ED1: the statement list is derived at emission).
+L2  Emitter: `fn_item` (emit.bend:185) takes the body as one A.Node;  `tail(e)` :104 gives `[SExpr{e, False}]`;
+    `nodes` :124-154 is `@unsafe` with one arm per constructor and no `other` arm, so a new constructor needs its
+    arm.  The let statement form is a new `tail`: for `XLet` give `SLet{m0(), name_pat(name), Some{ty(t)},
+    Some{ex(value)}}` then `tail(body)` (nested lets flatten);  in `nodes` the non-tail position gives
+    `A.EBlock{tail(XLet{..})}`.  rustfmt puts an `if` arm body in a block (`arm_body` :108);  check what it
+    does with a block arm body.  Importer: `tail_job` (lift.bend:381-391) accepts `Con{SExpr, Nil}` only and
+    `stmt_refusal` :369-376 refuses `SLet` with "`let` statement";  the lifted kinds are `K` (lift.bend:262).
+    Lowering: `children` (lower.bend:225) and `lows` :280-300 walk one R.Ex with the name list `ns`;  `fun_of`
+    :271;  inference: infer.bend `Env` :36, `Loc` :33, `Job`/`Syn`/`St` and `step_jobs` (lower.bend:209).  NOT
+    read: how `Syn` carries the type of one expression and where `Env` gains a binder (the next session reads
+    infer.bend around its `step`).
+L3  CONFIRMED.  `checked_form` (elab.bend:619-624) prints `Pp.term([], body)` per def through `entry_text`, no
+    normalization, so a `Term.Let` kept by elab prints as `let x : T := v in b`.
+L4  The let binder is defined with `Quantity.QMany{}` whatever its type (elab_term.bend:1209-1216,
+    `Check.define(name, QMany, ty_value, value_value, ctx)`);  the value is elaborated once in the enclosing
+    context.  Kernel engine sites: check_engine.bend:333 and :432.  ED4 stays: a QOne variable used in the value
+    counts once;  the binder itself is unrestricted, so a seed may use a let binder twice.
+L5  (ED2) The emitter's in-scope value binders are `vs: List<Maybe<R.Param>>` in `plan_term`
+    (erase_typed.bend:1556;  Rust-side names, de Bruijn order;  `bind_some` :1426 pushes a match binder as
+    `Some{Param{name, TRef{ty}}}`, an erased binder is `None`);  the module fn names are in `env`.  Decision for
+    E1 (ASSUMPTION): refuse, do not freshen.  `no_plan("the let binder `<rust>` collides with `<other>` after the
+    name map (E1)")` when the snake image of the binder equals the name of any `Some` slot of `vs` or any fn name
+    of the module.  The binder enters `vs` as an owned `Param{name, ty}` (mirror the fn parameter entry, not the
+    `TRef` of a match binder).  Regressions: the `fooBar`/`foo_bar` case of ED2 as a classify row (the shape of
+    test/rust/emit/neg_classify.mech).  Under this refusal policy, nested same-name shadowing is also a
+    classify refusal: `let x := a in let x := b in x` collides with the outer `Some` slot, as does
+    `let x := a in let x := x in x`.  A successful emit fixture uses distinct nested binder names and an
+    initializer that reads the outer binder, such as `let x := a in let y := x in y`.
+NEXT: steps 3-7 of the plan above, in a session launched with CLAUDE_STEP_BUDGET=0.  Start with
+`zsh ~/Documents/mech-rust/e1-let.sh learn`.
