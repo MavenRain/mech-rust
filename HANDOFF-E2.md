@@ -1,5 +1,29 @@
 # HANDOFF E2: the struct, emitter side (2026-10-06, claude7, session 9d1e3ea8)
 
+## Review status (2026-10-06)
+
+E2 is still partial. The staged RIR/emitter scaffold now compiles, with exhaustive
+item and pattern consumers in the eraser, CLI dependency tracking, resolver,
+inference and lowering. Importing field structs remains an explicit typed refusal
+until E3. Named struct match patterns now follow the printer's rustfmt layout.
+
+Direct coverage is in `bend2/tests/rust_struct_emit.bend`,
+`bend2/tests/rust_struct_walkers.bend`, and `bend2/tests/rust_struct_import.bend`.
+Run `python3 dev/rust-struct-gate.py` in CODE; it checks 24 cases, including
+generated Rust formatting, compilation and execution. The existing emitter
+driver also accepts `sample struct`. Final gate results are in E-PROGRESS.md.
+
+Resume Session 3 NEXT at step 3: source family classification, constructor and
+case plans, refusals, the value oracle, source fixtures and feature documentation.
+Before enabling classification, resolve accessor names such as `clone`: an
+inherent getter can shadow derived Clone, while RIR `XClone` explicitly denotes
+`.clone()` syntax. No supported source path produces that conflicting struct yet.
+
+The original handoff and session logs below describe earlier states.
+
+## Original handoff
+
+
 Status: NO code change.  Both trees are at the staged E1 state:  code write-tree 1cf8ba3e, W write-tree 6ec0b81f
 before this file.  Do E2 as a HAND BUILD in a fresh session that is launched with CLAUDE_STEP_BUDGET=0.
 
@@ -75,3 +99,30 @@ No forward references (helper above its caller).  `@unsafe def` where `nodes` ne
 ## Close
 EMIT.md `## Struct (E2)` (style of `## Let (E1)`, refusal rows, limits);  E-PROGRESS.md entry "E2 session 2";
 COMMIT-MSG-E2.txt (`E2: emit a one-constructor family as a struct with accessors`, no Co-Authored-By);  stage.
+
+## Session 3 state (2026-10-06, claude7, main-loop hand build, stopped at the context cap)
+Builders: both fable wf-builders died on the Fable usage limit (HTTP 429) before any edit:  req_011CfmUbNRVT5msViczsc6YH
+(emitter core), req_011CfmUbNqY3xuRpcjE7pamD (walker arms).  Both opus fallbacks (`[builder-tier-explicit]`) died on
+`[reasoning_extraction]` before any edit:  req_011CfmUeyBcK2pFnoPijx8mf, req_011CfmUf5X7PBzjmgSf7vvL5.  Delegation HALTED.
+Stop check DONE:  every one-ctor family in test/rust/seed and test/rust/emit is a Prop (python scan), so E2 does not need E3.
+
+DONE (STAGED, NOT COMPILED):
+- rir.bend:  `Pat.PStruct{family, named: Bool, fields: List<String>, binds: List<Bind>}` and
+  `Item.IStruct{name, ctor, named: Bool, fields: List<Param>, getters: List<Param>}`.  Design change from the proposal:
+  `getters` carries the accessor return type, so erase_typed (not emit) decides Copy:  getter ty `TRef{A}` = borrow
+  (`&self.a`), any other ty = copy (`self.a`).  A tuple struct has `getters` empty and its field names are the ctor
+  parameter names (`x0`, `x1`, ...).
+- emit.bend:  `pat` arm PStruct -> `struct_pat` (named:  `S { a, b: x, c: _ }` with shorthand when bind = field name,
+  rest False;  tuple:  PTupleStruct `N(x, _)`);  `items` arm IStruct -> struct with `derive(False{})` + ctor fn via
+  `fn_item` (`S { a, b }` or `N(x0, x1)`) + `impl_block` (one IImpl, first accessor without a blank line).  Helpers
+  FB/field_pat/field_pats/struct_pat above `pat`;  nfields/param_tys/inits/args/struct_body/struct_new/getter_body/
+  getter/getters/impl_block above `items`.
+
+FIRST BUILD ERROR (bend reports one at a time;  build:  `~/.bend/bin/bend <CODE>/bend2/tests/rust_emit.bend -o
+$TMPDIR/e2/re.js`):  `expected : cases for ../rust/rir.IStruct` at erase_typed.bend `show_item` :855.
+
+NEXT (in order):  1. erase_typed `show_item` :855 + every other R.Item / R.Pat match (rebuild until clean);
+2. walker arms lift/resolve/infer/lower/rust_out (list above, E1 XLet precedent in 2323e44 + 6ed4700);
+3. erase_typed classification (Task 1-7:  CData class, item, ctor application -> XCall, case -> PStruct, the 3 refusals);
+4. tests rust_emit_oracle `Et.CData` :68 + rust_emit struct case;  5. struct_probe.mech + e2-struct.sh (from e1-let.sh,
+drop the `py` call of dev/rust-in-cli-gate.py);  6. gates (baselines above) + Close.

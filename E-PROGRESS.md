@@ -291,3 +291,36 @@ No commit or push was made.
 - Runner: e1-let.sh `py` mode runs dev/rust-in-cli-gate.py.  e2-struct.sh must not run it (the USER runs it on a quiet box).
 - NEXT: hand build E2 from HANDOFF-E2.md in a fresh session launched with CLAUDE_STEP_BUDGET=0, or delegate again to
   a fable wf-builder after the Fable usage limit resets.
+
+## E2 session 3 (2026-10-06, claude7)
+- Builders DEAD again (fable 429 x2, opus `[reasoning_extraction]` x2;  request ids in HANDOFF-E2.md "Session 3 state").
+- Stop check DONE:  no one-ctor Type family in seed/emit fixtures, so E2 can land before E3.
+- Hand build in the main loop:  rir.bend IStruct/PStruct (with `getters`) and emit.bend struct arms.  NOT COMPILED:
+  the first build error is erase_typed `show_item` :855 (missing IStruct case).  Exact next steps:  HANDOFF-E2.md.
+
+## E2 staged scaffold review (2026-10-06, Codex)
+
+- Reviewed the complete staged E2 scaffold and both staged handoff documents.
+  No CI weakening was present. No commit or push was made.
+- HIGH fixed: adding `IStruct` and `PStruct` made the existing emitter/importer
+  consumers non-exhaustive. The original staged emitter build failed at
+  `erase_typed.show_item`. Item/pattern walkers now compile, preserve dependencies,
+  constructor collision names and binding behavior, and reject unsupported struct
+  imports with located errors. Lowering still requires successful inference.
+- Fixed canonical output: wide named struct patterns were emitted on one line,
+  failing rustfmt. The printer now lays out those match patterns and their arm
+  bodies correctly while preserving existing parser fixtures.
+- Added `sample struct` and `dev/rust-struct-gate.py`: 24 checks for named/tuple
+  constructors and patterns, renamed/skipped bindings, copied bool and borrowed
+  String accessors, typed import refusals, dependency/collision walkers, rustfmt,
+  rustc and generated Rust execution. The gate can reuse built drivers.
+- Final validation: RUST-PARSE 36/36; RUST-IN 33/33; ROUND-TRIP 99/99;
+  RUST-INFER 39 cases plus 22 golden functions; RUST-LOWER 46 cases;
+  the new struct gate 24/24. Emitter/importer drivers compiled, existing sample
+  output remained rustfmt-clean, and the emitted fixture crate passed
+  `cargo fmt -- --check`. The CLI and DIFF-EXEC gates were not run.
+- E2 remains partial: family classification, constructor/case integration,
+  source-level struct refusals and fixtures, and the value oracle are still next.
+  Before classification produces structs, resolve the `clone` accessor collision
+  described in HANDOFF-E2.md; changing literal RIR `.clone()` behavior is outside
+  this scaffold review.
