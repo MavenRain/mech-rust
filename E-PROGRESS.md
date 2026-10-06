@@ -207,3 +207,66 @@ Decisions (fold of HANDOFF-E1.md F1-F8):
 - Bend 2 traps hit: a match scrutinee must be a parameter (helper def per computed scrutinee); shared `ks`/`vs`/`t` need `+`; no forward references (`let_t` sits above `lows`).
 Done: rir XLet; erase_typed BLet/let_plan/let_rx/uses arm; emit tail/let_ty/nodes arm; resolve/infer/lower XLet arms; rust_out exs_refs arm; test/rust/emit/let_probe.mech; `e1-let.sh emit` = E1-EMIT-OK 24 lines rustfmt clean.
 OPEN (next session): lift.bend KLet (tail_job for `SLet{PPath{name}, ty, Some{init}} <> rest`, refusals "`let` without an initializer" / "`let` with a pattern" / "`let` with no tail expression", `kind(EBlock{SLet..})`, walk arm -> `R.XLet`); fixtures (neg_classify rows negLetParam/negLetShadow/negLetGlobal/non-Copy, remove refuse/01_let row+dir, add 12_let_mut, python table rows F7, seed 10_let + RED control in rt-mech-gate.sh); docs EMIT.md/IMPORT.md let sections + ROUNDTRIP.md; `e1-let.sh all` against baselines parse 35 / in 31 / rt 90 / 22 golden fns.
+
+### E1 session 3 (2026-10-06, hand build, claude7): importer side of `let`
+The USER committed session 2 as code 2323e44 and W d686c7c.  This session was launched without
+CLAUDE_STEP_BUDGET=0 again, so the work was batched into few steps and the gates ran in the background.
+Decisions:
+- lift.bend: `KLet{name, ty: Maybe<A.Ty>, init, rest}` and `KBlock{stmts}`.  `tail_job` has an `SLet` arm
+  before the refusal arm (`let_job` -> `let_init` -> `let_rest`, one helper per matched field, Bend 2 trap);
+  refusals `` `let` with a pattern ``, `` `let` without an initializer ``, `` `let` with no tail expression ``
+  at the position of the `let`.  `kind(EBlock{SLet..})` gives `KBlock`; every other block stays refused, so the
+  LIFT identity holds (`{ e }` would print back as `e`).  The `walk` arm gives `R.XLet{name, let_ty(t),
+  one(init), one(tail_job(rest))}`;  `let_ty` keeps `None` for `let y = x;`.
+- Fixtures: `01_let` removed (positive case now, in the python tables);  `12_let_mut` (the import parser gives a
+  parse error, `parse: 2:13 expected `;`, found `y``, not the `mut binding` text) and `13_let_pattern` (`let _ = x;`) added.  `14_let_no_type` added (`let y =
+  Maybe::Nothing;` with a generic `Maybe`):  `let_syn` (infer.bend:597) maps ANY synth failure to "let `y`
+  with no type (E1)", so the CD9 text of the initializer does not show;  infer NEGATIVES row "let with no
+  type" covers the same path.  `let_copy` accepts TBool or a family
+  in `copies`;  negLetParam/negLetShadow/negLetGlobal/negLetNat are lines 3-6 of neg_classify.mech (line 6 =
+  "a let of a non-Copy type (E1)", checked by running re.js on the fixture;  the F7 pair-constructor case is
+  covered by this refusal, since no non-Copy binder reaches emission).  Seed `10_let` = 01_enum_match + `lightTwice` (let in the
+  tail);  RED control "let initializer changed" in rt-mech-gate.sh mutates `lightNext l` to `l` in the
+  imported text and wants `RT-MECH-FAIL lightTwice`.  Python rows: infer POSITIVES `let with annotation` and
+  `let without annotation` (both `("good", 0)`: the synthesized type travels in the job, no note);  lower
+  CONTEXTS `let in tail`, `let in argument`;  SEMANTICS `let value`, `let shadows nothing`.
+- Docs: EMIT.md `## Let (E1)` + refusal row + known limit;  IMPORT.md `## Let (E1)` + ten seeds;  ROUNDTRIP.md
+  known limit (the pass count line is updated when the gate reports).
+Gate results (2026-10-06, final staged trees, machine load 11 to 31):
+- `e1-let.sh emit` E1-EMIT-OK; neg_classify lines 3 to 6 as listed above.
+- RUST-IN `pass=33 fail=0` (31 before E1: `01_let` out, `12_let_mut`, `13_let_pattern`, `14_let_no_type` in).
+- ROUND-TRIP `pass=99 fail=0` (seed `10_let` and its RED control in).  RUST-PARSE `pass=35 fail=0`.
+- Python: RUST-LET-OK 5;  RUST-INFER-OK `cases=35 golden-functions=22`;  RUST-LOWER-OK `cases=41`.  The infer and
+  lower gates ran with prebuilt drivers (`--driver`, `--emitter`), because their own bend builds hit the 180 s
+  timeout under load.
+- NOT VERIFIED: `dev/rust-in-cli-gate.py`.  Its 14 driver cases passed, but the build of `bend2/mech.bend` failed
+  three times (180 s timeout twice, one silent stop at 322 s with no output file).  The peak memory of that build
+  is not known (the sandbox blocks `/usr/bin/time -l`).  E1 does not change `bend2/cli/rust_in.bend`.  Run the
+  gate on a quiet box before the commit: `python3 dev/rust-in-cli-gate.py` from the code root.
+
+### E2 session 1 (2026-10-06, claude7): no code change, hand-off written
+The USER had not committed E1, so E2 was to build on the staged E1 trees (code 1cf8ba3e, W 6ec0b81f).  One fable
+wf-builder died on a Fable usage limit (req_011CfmNVw4AAXE5FcyGuAmmY) and the marked opus fallback died on
+`[reasoning_extraction]` (req_011CfmNa98or62UrqMZFoAWT), both before the first edit.  Per the USER ruling of 10-05
+the delegation stops there.  The site map, the proposed RIR (`IStruct`, `PStruct`), the walker list and the stop
+check are in HANDOFF-E2.md.  NEXT:  hand build E2 from HANDOFF-E2.md in a fresh session launched with
+CLAUDE_STEP_BUDGET=0.
+### E1 staged review (2026-10-06, Codex)
+Reviewed all 17 staged code/test paths and all three staged planning files. No CI weakening found.
+Two confirmed defects were fixed and staged with regressions:
+- HIGH, print.bend: `JFl` is a layout probe. Using it to print a match scrutinee or an `if` condition replaced
+  a nonempty let block with `{\n}`, dropping its initializer and body. Seed `lightLetGo` emitted an empty
+  scrutinee and could not compile or import. These positions now use `JEx`; the parser fixture covers
+  ordinary and empty matches plus `if`, and seed `10_let` covers the emitted match and conditional paths.
+- MEDIUM, infer.bend: `synth` had no `XLet` arm. A valid `match { let y: Foo = x; y }` was refused with the
+  unrelated CD9 generic-constructor diagnostic. Synthesis now gets the body type with the binder in scope
+  and retains a checking job for the whole let, so it still checks the initializer in the outer scope.
+  Regressions cover typed/untyped scrutinees, nested initializers, evaluation, and an invalid initializer.
+Validation: inference 39 cases with 22 golden functions; lowering 46 cases; parser 36; RUST-LET 5; DIFF-EXEC passed
+with its mutation controls; the emitted let-control-flow crate compiled and passed `cargo fmt --check`.
+The compiler-cache wrapper was disabled for DIFF-EXEC because sccache cannot operate in this sandbox.
+The final combined importer built successfully on retry. RUST-IN passed 33 checks, and ROUND-TRIP
+passed 99 checks with the expanded seed. The first combined importer attempt and the CLI build exited 137;
+the full CLI gate remains unverified and is still required before committing.
+Review artifacts and complete execution logs are under /Users/oobi/Documents/gpt7/mech-rust-e1-review.
+No commit or push was made.

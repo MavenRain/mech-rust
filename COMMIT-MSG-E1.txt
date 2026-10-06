@@ -1,10 +1,22 @@
-E1: emit `let` and accept the let RIR in every walker
+E1: lift `let` and round-trip it through the seed corpus
 
-Add `XLet{name, ty: Maybe<Ty>, value, body}` to the RIR. The emitter plans
-a `Term.Let` of a Copy-typed binder as `{ let x: T = v; body }` (a let in
-tail position is flattened into the fn block); a non-Copy, function,
-type-sorted or name-colliding binder is a located refusal. The importer
-walkers (resolve, infer, lower, rust_out refs) accept `XLet`; the lifter
-does not produce it yet (next slice).
+The lifter accepts `let name: T = v;` and `let name = v;` before the tail
+of a block (`KLet`), and a block in an argument position whose first
+statement is a let (`KBlock`). A let with a pattern, with no initializer
+or with no tail after it is a located refusal; the parser keeps refusing
+`let mut`.
 
-Fixture: test/rust/emit/let_probe.mech (E1-EMIT-OK, rustfmt clean).
+Fixtures: refuse crates `12_let_mut` and `13_let_pattern` replace `01_let`;
+refuse crate `14_let_no_type` shows that a failed synthesis of an untyped
+initializer gives the let refusal, not the CD9 text; seed `10_let` adds
+`lightTwice` (a let in the tail) with a RED control that changes the
+imported initializer; `let` rows in the infer and lower python gates;
+four rows in neg_classify.mech (three ED2 name collisions and one
+binder of the non-Copy type `MechNat`).
+
+Docs: `## Let (E1)` in EMIT.md and IMPORT.md, ROUNDTRIP.md known limits.
+
+Preserve let blocks in printed match scrutinees and if conditions instead
+of emitting the flat-layout placeholder. Synthesize let expression types
+in scrutinees and nested initializers while retaining initializer checks.
+Add parser, inference, evaluation and round-trip regressions for these paths.
