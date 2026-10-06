@@ -126,3 +126,46 @@ NEXT (in order):  1. erase_typed `show_item` :855 + every other R.Item / R.Pat m
 3. erase_typed classification (Task 1-7:  CData class, item, ctor application -> XCall, case -> PStruct, the 3 refusals);
 4. tests rust_emit_oracle `Et.CData` :68 + rust_emit struct case;  5. struct_probe.mech + e2-struct.sh (from e1-let.sh,
 drop the `py` call of dev/rust-in-cli-gate.py);  6. gates (baselines above) + Close.
+
+## Session 4 state (2026-10-06, claude7):  step 3 task, ready to run
+Code 65aa35e and W b2a96e8 (plus this entry).  No code change in session 4 (builders dead, E-PROGRESS "E2 session 4").
+Give this section to one builder, or hand build it in a session launched with CLAUDE_STEP_BUDGET=0.
+
+Classification in CODE/bend2/rust/erase_typed.bend (line numbers at 65aa35e).  A family with ONE constructor, at
+least one KEPT (non-Prop) field, no index and no generic becomes a struct:
+1. All kept binders named:  `IStruct{name, ctor, named: True, fields, getters}`.  Field names through `fn_name`
+   (:78).  Ctor fn name through D7 as `unit_kept` (:674).  Getter ty = field ty when it is `TBool` or a `TCon` in
+   `copies_of(env)`, else `TRef{field ty}`.
+   Check uniqueness AFTER `fn_name` on the kept fields, before producing IStruct.  For example, `fooBar` and
+   `foo_bar` both become `foo_bar`, which duplicates the Rust field, ctor parameter and accessor.  Give a located
+   CNo ``constructor fields `<a>` and `<b>` both map to `<rust>` (E2)``; do not emit invalid Rust.  Apply the same
+   check to keyword escaping collisions such as `type` and `type_`.  Erased fields do not participate.
+2. All kept binders `_`:  tuple struct, `named: False`, Params `x0`, `x1`, ..., `getters` empty (check no clash).
+3. Mixed:  CNo ``a constructor with named and `_` fields (E2)``.
+4. U15:  accessor name AFTER `fn_name` in {clone, clone_from, eq, ne, fmt}:  CNo ``a field named `<name>` shadows a derived trait
+   method (E2)``.  Record U14 and U15 under "Rulings wanted" in E-PROGRESS.md.
+5. A struct is never in `copies` (ED8, `copy_names` :901).
+6. Ctor application:  `XCall{ctor_fn, [], args}`, kept args erased and boxed as the enum path does (`item_plan`
+   :1156, `enum_plan` :1153, BCtor, box_flags).
+7. Same-module case:  `R.PStruct{family, named, field names (empty for tuple), binds}`, no `..` (`br` :1463, `br_of`,
+   `brs`, `elim_plan` :1539, `match_plan`).  Case on a struct from another module:  CNo ``a case on the struct `<S>`
+   outside its module (E2)`` (how `IUse{module}` is made;  `classify2` :984;  if no reliable signal, refuse every
+   case on an imported struct and log it).
+8. U12:  no more one-variant enum for such a family.  All fields erased stays `IUnit` (:645, :683).  With generics:
+   today (one-variant IEnum).  Entry `classify_family` :701 -> `family_class` -> `data_class` -> `unit_class`;  add a
+   name-keeping sibling of `variants`/`fields`/`field_step` (:562-605) for the one-ctor case.
+Tests:  rust_emit_oracle `Et.CData` (~:68) for IStruct;  a SOURCE fixture (named struct with a Bool field and a
+family field, tuple struct, ctor application, same-module case with a renamed and a skipped bind) plus refusal
+fixtures for items 1 (mapped-name collisions), 3, 4, 7; include `fooBar`/`foo_bar`, `type`/`type_`, and `cloneFrom`
+(maps to the reserved accessor `clone_from`).  EMIT.md.  Expect zero changed goldens (stop check); if one changes,
+stop and report.
+Gates:  W/e2-struct.sh = copy of e1-let.sh minus `pygate RUST-IN-CLI`, plus `pygate RUST-STRUCT
+dev/rust-struct-gate.py`.  Baselines:  RUST-PARSE 36/36, RUST-IN 33/33, ROUND-TRIP 99/99, RUST-INFER 39 + 22 golden,
+RUST-LOWER 46, RUST-LET as e1, struct 24/24;  both drivers build;  emitted crate fmt check through gateledger plus
+DIFF-EXEC.  The copied e1 runner has no `exec` mode: run `zsh ~/Documents/mech-rust/d3-points.sh exec` separately
+with the sandbox off, or add the equivalent mode to e2-struct.sh.  DIFF-EXEC is required for these emitter
+changes; the lack of a runner mode does not waive it.  Sequential runs.  RUST-IN-CLI remains a separate USER
+quiet-box gate, as recorded in E-PROGRESS session 2; omitting it from the local runner does not count as a pass.
+Record any pending gate explicitly and do not report full validation while it is pending.  Close: E-PROGRESS
+entry, this file top status, stage own paths, print write-trees and `E2: ` commit messages (no Co-Authored-By).
+NEVER commit or push.

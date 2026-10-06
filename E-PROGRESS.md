@@ -324,3 +324,28 @@ No commit or push was made.
   Before classification produces structs, resolve the `clone` accessor collision
   described in HANDOFF-E2.md; changing literal RIR `.clone()` behavior is outside
   this scaffold review.
+
+## E2 session 4 (2026-10-06, claude7): no code change, builders dead
+- Start:  code at 65aa35e (USER committed the Codex scaffold), W at b2a96e8;  both trees clean.
+- The fable wf-builder died on the Fable usage limit (HTTP 429) before any edit:  req_011CfmgLo43Qop8G4ZTPUx3G.
+  The opus fallback (`[builder-tier-explicit]`) died on `[reasoning_extraction]` before any edit:
+  req_011CfmgQ8EYzHuF1XbjtwXZ7.  Delegation HALTED (ruling 10-05).  CLAUDE_STEP_BUDGET was unset, so no hand build.
+- Proposed (ASSUMPTIONS, not applied yet):  U14 a tuple struct gets no accessors;  U15 refuse a named struct whose
+  accessor name is `clone`, `clone_from`, `eq`, `ne` or `fmt`, so that RIR `XClone` keeps its `.clone()` meaning.
+- NEXT:  HANDOFF-E2.md "Session 4 state" has the full step 3 to 6 task, ready to give to one builder or a hand build.
+
+## E2 session 4 handoff review (2026-10-06, Codex)
+- Scope: both staged planning documents. CODE remains clean at 65aa35e; this review does not implement steps 3-6.
+- Validation weakening fixed: the new handoff made DIFF-EXEC conditional on a runner mode, but e1-let.sh has no
+  `exec` mode to copy. Completing that recipe could skip differential execution after changing the emitter.
+  The handoff now requires the existing `d3-points.sh exec` command or an equivalent E2 mode. RUST-IN-CLI stays
+  assigned to the USER's quiet-box run under session 2 policy, with pending status stated explicitly.
+- MEDIUM fixed: named fields had no uniqueness check after `fn_name`. Distinct kept binders `fooBar` and
+  `foo_bar` both become `foo_bar`; the prescribed output has duplicate fields, ctor parameters and accessors.
+  The handoff now requires a located refusal and regression fixtures, including keyword-escaping collisions.
+  The U15 check explicitly uses the mapped accessor name, with `cloneFrom` as a regression input.
+- Evidence: the Rust output prescribed for the collision was rustfmt-clean and failed rustc with E0124, E0415,
+  E0592 and E0062. Reviewed `fn_name`, `snake_rest`, `rust_name`, `emit.items`, and `emit.getter` at 65aa35e.
+  Checked both runner mode tables. No implementation or CI configuration changed; no full gate rerun was needed
+  for these documentation fixes. The earlier scaffold gate results above remain historical evidence.
+- Steps 3-6 and their implementation gates remain pending. No commit or push was made.
