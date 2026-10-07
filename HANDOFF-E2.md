@@ -1,5 +1,11 @@
 # HANDOFF E2: the struct, emitter side (2026-10-06, claude7, session 9d1e3ea8)
 
+## Session 8 status (2026-10-06, claude7)
+Step 3 classification is hand built and STAGED; `rust_emit.bend` builds clean. No gate has run yet. Items 1 to 6
+and 8 are in erase_typed.bend; item 7 (case outside its module) is OPEN. The oracle arm is written but its driver
+is not built. Fixtures, e2-struct.sh, EMIT.md and the commit message are open. Details and NEXT: E-PROGRESS.md
+"E2 session 8".
+
 ## Review status (2026-10-06)
 
 E2 is still partial. The staged RIR/emitter scaffold now compiles, with exhaustive

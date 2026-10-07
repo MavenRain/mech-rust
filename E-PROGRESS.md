@@ -360,3 +360,39 @@ No commit or push was made.
 - Steps 3 to 6 and their gates remain pending.  U14 and U15 are still ASSUMPTIONS, not recorded as rulings.
 - NEXT:  HANDOFF-E2.md "Session 4 state" is unchanged and ready.  Run it as Codex, as one fable wf-builder after the
   Fable usage limit resets, or as a hand build in a session launched with CLAUDE_STEP_BUDGET=0.
+
+## E2 session 6 (2026-10-06, claude7): no code change, builders dead
+- Start:  code at 65aa35e, W at 2a19a99 (USER committed the session 5 log);  both trees clean.
+- The fable wf-builder got the "Session 4 state" task with the gate and close rules.  It died on the Fable usage
+  limit (HTTP 429) before any edit:  req_011CfmzRh6rkwZqbrh4f9yvL.  The opus fallback (`[builder-tier-explicit]`)
+  died on `[reasoning_extraction]` before any edit:  req_011CfmzTCLHEwE9YFUUfHxL3.  The code tree was clean after
+  each death.  Delegation HALTED (ruling 10-05).  CLAUDE_STEP_BUDGET was unset, so no hand build.
+- Fable 429 has now hit 6 sessions in a row on 10-06.  The opus fallback has died on `[reasoning_extraction]` in
+  each session, and it has never started for E2.  Another relaunch in a new session will probably die the same way.
+- Steps 3 to 6 and their gates remain pending.  U14 and U15 are still ASSUMPTIONS, not recorded as rulings.
+- NEXT:  HANDOFF-E2.md "Session 4 state" is unchanged and ready.  Run it as Codex, as one fable wf-builder after
+  the Fable usage limit resets, or as a hand build in a session launched with CLAUDE_STEP_BUDGET=0.
+
+## E2 session 7 (2026-10-06, claude7): no code change, builders dead
+- Start:  code at 65aa35e (index clean, write-tree eaacfb3e), W at 2a19a99 with the session 6 entry still staged.
+- The fable wf-builder got the "Session 4 state" task (Sites, gates, traps and Close inlined in a scratch file).
+  It died on the Fable usage limit (HTTP 429) before any edit:  req_011Cfn1awf5PiDBDq4P9KjYY.  The opus fallback
+  (`[builder-tier-explicit]`) died on `[reasoning_extraction]` before any edit:  req_011Cfn1cvsWZaCpELevaUGid.
+  Delegation HALTED (ruling 10-05).  CLAUDE_STEP_BUDGET was unset, so no hand build.  Machine load was about 66.
+- Fable 429 has now hit 7 sessions in a row on 10-06.  The opus fallback has died on `[reasoning_extraction]` in
+  all 7 sessions.  A relaunch of the same pair is not a useful next step.
+- Steps 3 to 6 and their gates remain pending.  U14 and U15 are still ASSUMPTIONS, not recorded as rulings.
+- NEXT:  HANDOFF-E2.md "Session 4 state" is unchanged and ready.  Run it as Codex, as one fable wf-builder after
+  the Fable usage limit resets, or as a hand build in a session launched with CLAUDE_STEP_BUDGET=0.
+
+## E2 session 8 (2026-10-06, claude7, main-loop hand build, stopped at the context cap)
+- Builders: the fable wf-builder died on the Fable usage limit (HTTP 429), req_011Cfn6VJ2bWcXtZde8K9SL4. The marked opus fallback died on `[reasoning_extraction]`, req_011Cfn6YD8zqa87tLRQFe7zL. Both died before any edit. Hand build per the 10-05 ruling.
+- DONE (STAGED). `bend bend2/tests/rust_emit.bend` builds with exit 0.
+  - erase_typed.bend classification: `classify_family` calls `struct_or`. One ctor, no index, and a `family_class` result that is a one-variant IEnum with no generic and at least one field give a struct. `named_fields` keeps the binder names. All binders named: IStruct named (fields through `fn_name`; getter ty = field ty for TBool or a TCon in `copies`, else TRef). All binders `_`: tuple struct, params x0 to x15 (more than 16 fields is a refusal). Mixed: refusal. `clash` refuses two kept fields with one Rust name. `shadow` refuses the accessor names clone, clone_from, eq, ne, fmt (U15).
+  - Ctor application: `item_plan` IStruct arm, `new_plan`, new Build `BNew{func, boxes, want}`, result `XCall{func, [], boxed args}`.
+  - Case: `elim_plan` wraps `brs` in `struct_brs` (PCtor to PStruct; field names for a named struct, empty for a tuple struct).
+  - rust_emit_oracle.bend: `Et.CData{R.IStruct}` arm renders `{:?}` text (`S { a: v, b: v }`, `N(v, v)`). NOT BUILT: build its test driver.
+- NOT DONE: item 7 cross-module refusal. Env has no local-module signal: file 2 is checked with the env of file 1 (`emit2_of`, `classify_source`). Add a local-family list to Env, or refuse each case on a family of file 1. The `_` binder test is `String.eq(x, "_")` and is NOT VERIFIED against the parser. Fixtures (struct_probe.mech, refusal rows for fooBar/foo_bar, type/type_, cloneFrom, mixed), e2-struct.sh, EMIT.md `## Struct (E2)`, COMMIT-MSG-E2.txt.
+- Gates: NONE RUN except the rust_emit.bend build. This is not a validated state.
+- Rulings wanted: U14 (a tuple struct has no accessors), U15 (refuse the reserved accessor names), U16 (tuple struct limit of 16 fields, from a fixed name table).
+- NEXT: build the oracle driver, add the fixtures, verify the `_` name, run the e2-struct.sh gates and DIFF-EXEC, item 7, then close.
