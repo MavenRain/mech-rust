@@ -349,3 +349,14 @@ No commit or push was made.
   Checked both runner mode tables. No implementation or CI configuration changed; no full gate rerun was needed
   for these documentation fixes. The earlier scaffold gate results above remain historical evidence.
 - Steps 3-6 and their implementation gates remain pending. No commit or push was made.
+
+## E2 session 5 (2026-10-06, claude7): no code change, builders dead
+- Start:  code at 65aa35e, W at b46246d (USER committed the session 4 handoff review);  both trees clean.
+- The fable wf-builder got the "Session 4 state" task as written.  It died on the Fable usage limit (HTTP 429)
+  before any edit:  req_011CfmiCTa3J5deYnqGKcP11.  The opus fallback (`[builder-tier-explicit]`) died on
+  `[reasoning_extraction]` before any edit:  req_011CfmiEeJkbCETkiFwavcoZ.  Both trees were clean after each death.
+  Delegation HALTED (ruling 10-05).  CLAUDE_STEP_BUDGET was unset, so no hand build.
+- Fable 429 has now hit 5 sessions in a row on 10-06, and the opus fallback died on `[reasoning_extraction]` in each.
+- Steps 3 to 6 and their gates remain pending.  U14 and U15 are still ASSUMPTIONS, not recorded as rulings.
+- NEXT:  HANDOFF-E2.md "Session 4 state" is unchanged and ready.  Run it as Codex, as one fable wf-builder after the
+  Fable usage limit resets, or as a hand build in a session launched with CLAUDE_STEP_BUDGET=0.
